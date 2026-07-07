@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Burger Shot — Manage Menu</title>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/TNstx6j/BS.png">
+  <meta name="theme-color" content="#0b2e70">
+  <style>
+    :root {
+      --brown:#d62828; --tan:#0b2e70; --cream:#eef2ff; --ink:#111827; --muted:#6b7280;
+      --border:#e5e7eb; --shadow:0 10px 30px rgba(0,0,0,.10);
+      --bg:#f3f4ff; --panel:#fff; --card:#fff; --chip:#eef2ff; --text:var(--ink); --accent:var(--brown); --radius:16px;
+      --bg-dark:#020617; --panel-dark:#020617; --card-dark:#050816; --chip-dark:#111827; --text-dark:#e5e7eb; --border-dark:#1f2937;
+    }
+    [data-theme="dark"]{ --bg:var(--bg-dark); --panel:var(--panel-dark); --card:var(--card-dark); --chip:var(--chip-dark); --text:var(--text-dark); --border:var(--border-dark); }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,"Noto Sans",Arial}
+    h1,h2,h3{font-family:Georgia,"Times New Roman",serif;letter-spacing:.2px}
+    .container{max-width:820px;margin:32px auto;padding:0 16px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand .logo{width:48px;height:48px;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .brand h1{margin:0;font-size:1.3rem;letter-spacing:.3px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+    .panel h2{margin:0;padding:16px 18px;font-size:1rem;border-bottom:1px solid var(--border)}
+    .panel .content{padding:18px;display:flex;flex-direction:column;gap:14px}
+    .muted{color:var(--muted);font-size:.9rem}
+    .small{font-size:.85rem;color:var(--muted)}
+    label{display:block;margin-bottom:6px;font-size:.85rem;color:var(--muted)}
+    input,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.95rem}
+    select{
+      appearance:none;-webkit-appearance:none;-moz-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%236b4f3b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 12px center;
+      background-size:14px;
+      padding-right:34px;
+      cursor:pointer;
+      transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    [data-theme="dark"] select{
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%23efe9e2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+    select:hover{border-color:var(--accent)}
+    select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(107,79,59,.18)}
+    select[multiple]{appearance:auto;-webkit-appearance:auto;-moz-appearance:auto;background-image:none;padding-right:12px;cursor:auto}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);cursor:pointer;font-weight:600;text-decoration:none;transition:background .15s ease,color .15s ease,border-color .15s ease,filter .15s ease}
+    .btn.primary{background:linear-gradient(135deg,var(--brown),var(--tan));border:none;color:#fff}
+    .btn.ghost{background:transparent}
+    .btn.danger{color:#e63946;border-color:#e63946}
+    .btn.danger:hover{background:#e63946;color:#fff}
+    .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn.primary:hover{filter:brightness(.92)}
+    #editCategoryButtons .btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    dialog{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:var(--radius);padding:0;box-shadow:var(--shadow)}
+    dialog::backdrop{background:rgba(0,0,0,.5)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700}
+    .modal-body{padding:16px;display:flex;flex-direction:column;gap:12px;max-height:75vh;overflow-y:auto}
+    .bundle-button{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
+    .bundle-button.overridden{border-color:var(--accent)}
+    .recipe-row{display:grid;grid-template-columns:1fr 90px auto;gap:8px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--chip)}
+    .recipe-row input{padding:7px 9px;font-size:.85rem}
+    .recipe-item-button{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
+    .recipe-item-button.has-recipe{border-color:var(--accent)}
+    .settings-row{display:grid;grid-template-columns:1fr 100px auto;gap:8px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--card)}
+    .settings-row input{padding:7px 9px;font-size:.9rem}
+    .toolrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+    .divider{height:1px;background:var(--border);margin:4px 0}
+    .warning{color:#e63946;font-size:.85rem;display:none}
+    .custom-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+    .custom-row .meta{font-size:.85rem;color:var(--muted)}
+    .empty{color:var(--muted);font-size:.9rem;text-align:center;padding:20px 0}
+    #bundleFields{display:none;flex-direction:column;gap:14px}
+    .edit-row{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:12px;display:flex;flex-direction:column;gap:8px}
+    .edit-row .fields{display:grid;grid-template-columns:1fr 110px;gap:8px}
+    .edit-row .fields input{padding:8px 10px;font-size:.9rem}
+    .edit-row .fields .full{grid-column:1 / -1}
+    .edit-row .actions{display:flex;justify-content:flex-end;gap:8px}
+    .edit-row .actions .btn{padding:7px 12px;font-size:.85rem}
+    .edit-row.overridden{border-color:var(--accent)}
+    .override-tag{font-size:.72rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+    /* Bundle card preview — mirrors the actual card look on the calculator, so editing feels like the real thing */
+    .bundle-card{border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--card)}
+    .bundle-card-price{color:var(--accent);font-weight:700;font-size:1rem}
+    .bundle-card .fields{display:grid;grid-template-columns:1fr 110px;gap:8px}
+    .bundle-card .fields input{padding:8px 10px;font-size:.9rem}
+    .bundle-card .fields .full{grid-column:1 / -1}
+    .bundle-card .name-input{font-family:Georgia,"Times New Roman",serif;font-size:1rem;font-weight:700;border:none;background:transparent;padding:4px 0;width:100%;color:var(--text)}
+    .bundle-card .name-input:focus{outline:none;border-bottom:1px dashed var(--accent)}
+    .component-row{border:1px solid var(--border);border-radius:10px;padding:10px;display:grid;gap:8px;background:var(--chip)}
+    .component-row .top-fields{display:grid;grid-template-columns:110px 1fr 90px auto;gap:8px;align-items:center}
+    .component-row select,.component-row input{padding:7px 9px;font-size:.85rem}
+    .component-row select{padding-right:30px;background-position:right 8px center;background-size:12px}
+    .component-row .pool-note{font-size:.75rem;color:var(--muted)}
+    .component-row select[multiple]{min-height:90px}
+    .pool-checkboxes{display:flex;flex-wrap:wrap;gap:8px}
+    .pool-checkbox{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:.85rem;cursor:pointer;user-select:none}
+    .pool-checkbox input{width:auto;padding:0;margin:0}
+    .pool-checkbox:has(input:checked){border-color:var(--accent);background:var(--accent);color:#fff}
+    .component-row .remove-component{padding:6px 10px;font-size:.8rem}
+    .components-wrap{display:flex;flex-direction:column;gap:8px}
+    .components-label{font-size:.82rem;color:var(--muted);margin-top:4px}
+  </style>
+</head>
+<body>
+  <!-- No login gate for now — open access until a Supabase project (and, if wanted later,
+       an owner-login flow) is set up. Anyone with this URL can edit the menu. -->
+  <div id="adminApp">
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <img src="https://i.ibb.co/TNstx6j/BS.png" alt="Burger Shot logo" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <div>
+          <h1>Burger Shot — Manage Menu</h1>
+          <div class="muted">Add new items to the shop's menu.</div>
+        </div>
+      </div>
+      <div class="toolrow">
+        <a href="index.html" class="btn ghost">← Back to Calculator</a>
+        <button class="btn ghost" id="themeBtn" aria-pressed="false">🌙 Dark</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <h2>Add an Item</h2>
+      <div class="content">
+        <div class="small">Items added here are saved to your shared Supabase table and appear on the calculator for everyone once SUPABASE_URL/SUPABASE_ANON_KEY are filled in below and the table exists. There's no login gate yet, so anyone with this page's URL can make changes.</div>
+
+        <div>
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="classic">🍔 A La Carte</option>
+            <option value="iceCream">🍦 Ice Cream</option>
+            <option value="extras">🎁 Extras</option>
+            <option value="bundles">🍔 Combos &amp; Bundles</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="itemName">Item Name</label>
+          <input id="itemName" type="text" placeholder="e.g. Double Choc Cookie">
+        </div>
+
+        <div>
+          <label for="itemPrice">Price ($)</label>
+          <input id="itemPrice" type="number" min="0" step="1" placeholder="0">
+        </div>
+
+        <div id="bundleFields">
+          <div>
+            <label for="itemDescription">Description (shown on the card)</label>
+            <input id="itemDescription" type="text" placeholder="e.g. Choice of 5 drinks + 5 waffles">
+          </div>
+          <div class="small">After you click "Add Item," the contents editor will open automatically so you can pick what's included (choices, fixed items, and quantities).</div>
+        </div>
+
+        <small class="warning" id="formWarning">⚠ Enter a name and a price greater than $0.</small>
+
+        <div class="toolrow">
+          <button class="btn primary" id="addBtn">Add Item</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Items Added So Far (this device)</h2>
+      <div class="content" id="customList" style="gap:10px;"></div>
+    </div>
+
+    <div class="panel">
+      <h2>🍔 Combos &amp; Bundles</h2>
+      <div class="content">
+        <div class="small">Click a bundle to open its editor — change the price, name, description, or exactly what's included.</div>
+        <div id="editBundlesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Edit Existing Items</h2>
+      <div class="content">
+        <div class="small">Pick a category to show its items, change a price or name, and hit Save. This saves an override on this device — it doesn't rewrite the original menu file, and you can reset any item back to its default anytime.</div>
+        <div class="toolrow" id="editCategoryButtons" style="justify-content:flex-start;">
+          <button class="btn" data-category="classic">🍔 A La Carte</button>
+          <button class="btn" data-category="iceCream">🍦 Ice Cream</button>
+          <button class="btn" data-category="extras">🎁 Extras</button>
+        </div>
+        <div id="editList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🗑️ Deleted Items</h2>
+      <div class="content">
+        <div class="small">Anything deleted from Meals &amp; Bundles or Edit Existing Items shows up here — nothing is ever permanently removed from the menu file, so you can bring it back anytime.</div>
+        <div id="deletedList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>⚙️ Shop Settings</h2>
+      <div class="content">
+        <div class="small">Discount tiers and delivery zone fees used at checkout, for both the regular order and catering flows.</div>
+        <button class="btn" id="openShopSettingsBtn" style="align-self:flex-start;">⚙️ Open Shop Settings</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🧾 Ingredients</h2>
+      <div class="content">
+        <div class="small">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
+        <button class="btn" id="openIngredientsBtn" style="align-self:flex-start;">🧾 Open Ingredients</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 Recipes</h2>
+      <div class="content">
+        <div class="small">Pick an item to add or edit what ingredients (and how many) it takes to make.</div>
+        <button class="btn" id="openRecipesBtn" style="align-self:flex-start;">📋 Open Recipes</button>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="ingredientsModal" style="width:min(520px,94vw);">
+    <div class="modal-header">
+      <strong>🧾 Ingredients</strong>
+      <button class="btn" id="closeIngredientsModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="small">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
+      <div style="display:grid;grid-template-columns:1fr 120px auto;gap:8px;">
+        <input type="text" id="newIngredientName" placeholder="Ingredient name (e.g. Vanilla Syrup)">
+        <input type="number" id="newIngredientPrice" placeholder="Price $" min="0" step="0.01">
+        <button class="btn primary" id="addIngredientBtn">Add</button>
+      </div>
+      <div id="ingredientsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </dialog>
+
+  <dialog id="recipesModal" style="width:min(520px,94vw);">
+    <div class="modal-header">
+      <strong>📋 Recipes</strong>
+      <button class="btn" id="closeRecipesModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="small">Pick an item to add or edit what ingredients (and how many) it takes to make.</div>
+      <div class="toolrow" id="recipeCategoryButtons" style="justify-content:flex-start;">
+        <button class="btn" data-recipe-category="classic">🍔 A La Carte</button>
+        <button class="btn" data-recipe-category="iceCream">🍦 Ice Cream</button>
+        <button class="btn" data-recipe-category="extras">🎁 Extras</button>
+        <button class="btn" data-recipe-category="bundles">🍔 Combos &amp; Bundles</button>
+      </div>
+      <div id="recipeItemsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </dialog>
+
+  <dialog id="recipeEditModal" style="width:min(520px,94vw);">
+    <div class="modal-header">
+      <strong id="recipeEditModalTitle">Edit Recipe</strong>
+      <button class="btn" id="closeRecipeEditModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" id="recipeEditModalBody"></div>
+  </dialog>
+
+  <dialog id="shopSettingsModal" style="width:min(560px,94vw);">
+    <div class="modal-header">
+      <strong>⚙️ Shop Settings</strong>
+      <button class="btn" id="closeShopSettingsModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="small">These control the buttons customers' orders use at checkout — the discount tiers and delivery zone fees. Changes apply to both the regular order and catering flows.</div>
+
+      <div>
+        <label style="margin-bottom:8px;display:block;">Discount Tiers <span class="muted" style="font-weight:400;">("0%" is always available and can't be removed)</span></label>
+        <div id="discountTiersList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="toolrow" style="justify-content:flex-start;margin-top:8px;">
+          <button class="btn ghost" id="addTierBtn">+ Add Tier</button>
+        </div>
+      </div>
+
+      <div>
+        <label style="margin-bottom:8px;display:block;">Delivery Zones &amp; Fees</label>
+        <div id="deliveryZonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="toolrow" style="justify-content:flex-start;margin-top:8px;">
+          <button class="btn ghost" id="addZoneBtn">+ Add Zone</button>
+        </div>
+      </div>
+
+      <div class="toolrow" style="justify-content:flex-end;">
+        <button class="btn ghost" id="resetShopSettingsBtn">Reset to Defaults</button>
+        <button class="btn primary" id="saveShopSettingsBtn">Save Settings</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="adminAlertModal" style="width:min(440px,94vw);">
+    <div class="modal-header">
+      <strong id="adminAlertTitle">Notice</strong>
+      <button class="btn" id="closeAdminAlertModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="adminAlertMessage"></div>
+      <div class="toolrow" style="justify-content:flex-end;">
+        <button class="btn primary" id="adminAlertOkBtn">OK</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="adminConfirmModal" style="width:min(440px,94vw);">
+    <div class="modal-header">
+      <strong id="adminConfirmTitle">Please Confirm</strong>
+      <button class="btn" id="closeAdminConfirmModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="adminConfirmMessage"></div>
+      <div class="toolrow" style="justify-content:flex-end;">
+        <button class="btn" id="adminConfirmCancelBtn">Cancel</button>
+        <button class="btn primary" id="adminConfirmOkBtn" style="background:#e63946;">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="bundleEditModal" style="width:min(560px,94vw);">
+    <div class="modal-header">
+      <strong id="bundleEditModalTitle">Edit Bundle</strong>
+      <button class="btn" id="closeBundleEditModal">✕</button>
+    </div>
+    <div class="modal-body" id="bundleEditModalBody"></div>
+  </dialog>
+  </div>
+
+<script src="menu-data.js"></script>
+<script>
+  // ---------- Generic alert/confirm dialogs (no native browser popups anywhere) ----------
+  const adminAlertModal = document.getElementById('adminAlertModal');
+  const adminAlertTitle = document.getElementById('adminAlertTitle');
+  const adminAlertMessage = document.getElementById('adminAlertMessage');
+
+  function showAdminAlert(message, title = 'Notice'){
+    adminAlertTitle.textContent = title;
+    adminAlertMessage.textContent = message;
+    adminAlertModal.showModal();
+  }
+  document.getElementById('closeAdminAlertModal').addEventListener('click', () => adminAlertModal.close());
+  document.getElementById('adminAlertOkBtn').addEventListener('click', () => adminAlertModal.close());
+
+  const adminConfirmModal = document.getElementById('adminConfirmModal');
+  const adminConfirmTitle = document.getElementById('adminConfirmTitle');
+  const adminConfirmMessage = document.getElementById('adminConfirmMessage');
+  let pendingAdminConfirmCallback = null;
+
+  function showAdminConfirm(message, onConfirm, title = 'Please Confirm'){
+    adminConfirmTitle.textContent = title;
+    adminConfirmMessage.textContent = message;
+    pendingAdminConfirmCallback = onConfirm;
+    adminConfirmModal.showModal();
+  }
+  document.getElementById('closeAdminConfirmModal').addEventListener('click', () => { pendingAdminConfirmCallback = null; adminConfirmModal.close(); });
+  document.getElementById('adminConfirmCancelBtn').addEventListener('click', () => { pendingAdminConfirmCallback = null; adminConfirmModal.close(); });
+  document.getElementById('adminConfirmOkBtn').addEventListener('click', () => {
+    const cb = pendingAdminConfirmCallback;
+    pendingAdminConfirmCallback = null;
+    adminConfirmModal.close();
+    if(typeof cb === 'function') cb();
+  });
+
+  // ---------- MENU comes from menu-data.js, shared with index.html ----------
+  const currency = n => '$' + Number(n).toFixed(2);
+  const THEME_KEY = 'mc_theme_burgershot'; // separate, harmless if it doesn't match main page's key
+
+  // ---------- Shared menu state lives in Supabase ----------
+  // No login gate and no Edge Function for now — this reads and writes the shared
+  // table directly with the anon key. That means the table's Row Level Security
+  // policies need to allow public select/insert/update, since there's nothing
+  // server-side checking who's making the request. Add a real login gate before
+  // this is public-facing for real use.
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // TODO: fill in after creating your Supabase project
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // TODO: fill in with your project's anon public key
+
+  let customMenuItems = [];
+  let menuOverrides = {};
+  let deletedItemIds = [];
+  let recipeOverrides = {};
+  let customIngredients = [];
+
+  // Pristine copy of the shop settings shipped in menu-data.js, captured before
+  // any server-saved overrides are applied — used by "Reset to Defaults".
+  const DEFAULT_SHOP_SETTINGS = JSON.parse(JSON.stringify(SHOP_SETTINGS));
+  // Same idea for recipes — used by "Reset Recipe to Default".
+  const DEFAULT_RECIPE_MAP = JSON.parse(JSON.stringify(RECIPE_MAP));
+
+  let stateLoaded = false;
+  let stateLoadFailed = false;
+
+  async function loadStateFromServer(){
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_menu_state?id=eq.1&select=*`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      if(!res.ok) throw new Error(`Supabase read failed: ${res.status}`);
+      const rows = await res.json();
+      const row = rows[0] || {};
+
+      customMenuItems = Array.isArray(row.custom_items) ? row.custom_items : [];
+      menuOverrides = (row.overrides && typeof row.overrides === 'object') ? row.overrides : {};
+      deletedItemIds = Array.isArray(row.deleted_ids) ? row.deleted_ids : [];
+      recipeOverrides = (row.recipe_overrides && typeof row.recipe_overrides === 'object') ? row.recipe_overrides : {};
+      customIngredients = Array.isArray(row.custom_ingredients) ? row.custom_ingredients : [];
+
+      if(row.shop_settings && Array.isArray(row.shop_settings.discountTiers)){
+        SHOP_SETTINGS.discountTiers = row.shop_settings.discountTiers;
+      }
+      if(row.shop_settings && Array.isArray(row.shop_settings.deliveryZones)){
+        SHOP_SETTINGS.deliveryZones = row.shop_settings.deliveryZones;
+      }
+
+      // Merge custom items into the live MENU so they show up for editing here too.
+      customMenuItems.forEach(entry => {
+        if(MENU[entry.category]) MENU[entry.category].push(entry.item);
+      });
+
+      // Apply saved price/name/description/component overrides on top of the defaults.
+      Object.keys(menuOverrides).forEach(id => {
+        const override = menuOverrides[id];
+        Object.values(MENU).forEach(arr => {
+          if(!Array.isArray(arr)) return;
+          const item = arr.find(i => i.id === id);
+          if(item) Object.assign(item, override);
+        });
+      });
+
+      // Apply recipe overrides/additions on top of RECIPE_MAP.
+      Object.entries(recipeOverrides).forEach(([itemId, recipe]) => {
+        RECIPE_MAP[itemId] = recipe;
+      });
+
+      // Apply custom ingredient prices on top of INGREDIENT_PRICES.
+      customIngredients.forEach(ing => {
+        if(ing && ing.name) INGREDIENT_PRICES[ing.name] = Number(ing.price) || 0;
+      });
+
+      stateLoaded = true;
+    }catch(err){
+      console.error('Failed to load shared menu state:', err);
+      stateLoadFailed = true;
+      showAdminAlert('Could not load the shared menu data from the server. You can still browse, but changes may not save correctly until this is fixed — check your connection and try refreshing.', 'Connection Issue');
+    }
+
+    // Working copies for the Shop Settings editor need to reflect whatever we just loaded.
+    workingDiscountTiers = SHOP_SETTINGS.discountTiers.map(t => ({...t}));
+    workingDeliveryZones = SHOP_SETTINGS.deliveryZones.map(z => ({...z}));
+
+    renderCustomList();
+    renderEditList();
+    renderBundlesList();
+    renderDeletedList();
+    renderDiscountTiersList();
+    renderDeliveryZonesList();
+    renderIngredientsList();
+    renderRecipeItemsList();
+  }
+
+  async function syncStateToServer(){
+    // Upserts row id=1 of burgershot_menu_state directly with the anon key (no
+    // Edge Function, no login token — see the note above SUPABASE_URL). The
+    // table needs `id` as its primary key for Prefer: resolution=merge-duplicates
+    // to target the right row.
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_menu_state`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify({
+          id: 1,
+          custom_items: customMenuItems,
+          overrides: menuOverrides,
+          deleted_ids: deletedItemIds,
+          shop_settings: { discountTiers: SHOP_SETTINGS.discountTiers, deliveryZones: SHOP_SETTINGS.deliveryZones },
+          recipe_overrides: recipeOverrides,
+          custom_ingredients: customIngredients
+        })
+      });
+      if(!res.ok){
+        showAdminAlert('Failed to save your change to the server. Make sure SUPABASE_URL/SUPABASE_ANON_KEY are filled in above and the burgershot_menu_state table exists with the right columns.', 'Save Failed');
+        return false;
+      }
+      return true;
+    }catch(err){
+      console.error('Failed to sync menu state:', err);
+      showAdminAlert('Could not reach the server to save your change. Make sure SUPABASE_URL/SUPABASE_ANON_KEY are filled in and the table exists.', 'Save Failed');
+      return false;
+    }
+  }
+
+  function saveCustomMenuItems(){
+    syncStateToServer();
+  }
+
+  // ---------- Deleted items/bundles: hidden everywhere, but restorable (menu-data.js is never touched) ----------
+  function saveDeletedItemIds(){
+    syncStateToServer();
+  }
+
+  function isDeleted(id){
+    return deletedItemIds.includes(id);
+  }
+
+  function deleteItem(id){
+    showAdminConfirm('Delete this item? It will disappear from the calculator, but you can restore it anytime from the "Deleted Items" list below.', () => {
+      if(!deletedItemIds.includes(id)) deletedItemIds.push(id);
+      saveDeletedItemIds();
+      renderDeletedList();
+      renderEditList();
+      renderBundlesList();
+    }, 'Delete Item?');
+  }
+
+  function restoreItem(id){
+    deletedItemIds = deletedItemIds.filter(x => x !== id);
+    saveDeletedItemIds();
+    renderDeletedList();
+    renderEditList();
+    renderBundlesList();
+  }
+
+  function findAnyMenuItem(id){
+    for(const arr of Object.values(MENU)){
+      if(!Array.isArray(arr)) continue;
+      const found = arr.find(i => i.id === id);
+      if(found) return found;
+    }
+    return null;
+  }
+
+  function renderDeletedList(){
+    const list = document.getElementById('deletedList');
+    if(!list) return;
+
+    if(!deletedItemIds.length){
+      list.innerHTML = '<div class="empty">Nothing deleted right now.</div>';
+      return;
+    }
+
+    list.innerHTML = deletedItemIds.map(id => {
+      const raw = findAnyMenuItem(id);
+      const name = raw ? effectiveItem(raw).name : id;
+      const isCustom = id.startsWith('custom-');
+      return `
+        <div class="custom-row">
+          <strong>${name}</strong>
+          <div class="toolrow" style="gap:8px;">
+            <button class="btn" data-restore="${id}">Restore</button>
+            ${isCustom ? `<button class="btn danger" data-purge="${id}">Delete Permanently</button>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    list.querySelectorAll('[data-restore]').forEach(btn => {
+      btn.addEventListener('click', () => restoreItem(btn.dataset.restore));
+    });
+
+    list.querySelectorAll('[data-purge]').forEach(btn => {
+      btn.addEventListener('click', () => purgeCustomItem(btn.dataset.purge));
+    });
+  }
+
+  function purgeCustomItem(id){
+    showAdminConfirm('Permanently delete this item? Unlike a normal delete, this cannot be undone or restored — it will be completely removed.', () => {
+      const entryIdx = customMenuItems.findIndex(e => e.item.id === id);
+      if(entryIdx !== -1){
+        const entry = customMenuItems[entryIdx];
+        if(MENU[entry.category]){
+          const pos = MENU[entry.category].findIndex(i => i.id === id);
+          if(pos !== -1) MENU[entry.category].splice(pos, 1);
+        }
+        customMenuItems.splice(entryIdx, 1);
+      }
+      deletedItemIds = deletedItemIds.filter(x => x !== id);
+      delete menuOverrides[id];
+      syncStateToServer();
+      renderDeletedList();
+      renderCustomList();
+      renderEditList();
+      renderBundlesList();
+    }, 'Delete Permanently?');
+  }
+
+  const CATEGORY_LABELS = {
+    classic:'🍔 A La Carte',
+    iceCream:'🍦 Ice Cream',
+    extras:'🎁 Extras',
+    bundles:'🍔 Combos & Bundles'
+  };
+
+  const categorySelect = document.getElementById('category');
+  const itemName = document.getElementById('itemName');
+  const itemPrice = document.getElementById('itemPrice');
+  const bundleFields = document.getElementById('bundleFields');
+  const itemDescription = document.getElementById('itemDescription');
+  const formWarning = document.getElementById('formWarning');
+
+  const DEFAULT_ICONS = {
+    classic:'🍔',
+    iceCream:'🍦',
+    extras:'🎁',
+    bundles:'🍔'
+  };
+
+  function syncFormToCategory(){
+    bundleFields.style.display = categorySelect.value === 'bundles' ? 'flex' : 'none';
+  }
+  categorySelect.addEventListener('change', syncFormToCategory);
+  syncFormToCategory();
+
+  function resetForm(){
+    itemName.value = '';
+    itemPrice.value = '';
+    itemDescription.value = '';
+    formWarning.style.display = 'none';
+    itemName.style.borderColor = '';
+    itemPrice.style.borderColor = '';
+  }
+
+  function renderCustomList(){
+    const list = document.getElementById('customList');
+    if(!customMenuItems.length){
+      list.innerHTML = '<div class="empty">No custom items added yet.</div>';
+      return;
+    }
+    list.innerHTML = customMenuItems.map((entry,i) => `
+      <div class="custom-row">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:30px;height:30px;flex:none;border-radius:50%;background:var(--chip);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;">${entry.item.icon || DEFAULT_ICONS[entry.category] || '⭐'}</span>
+          <div>
+            <strong>${entry.item.name}</strong>
+            <div class="meta">${CATEGORY_LABELS[entry.category] || entry.category} • ${currency(entry.item.price)}${entry.item.description ? ` • ${entry.item.description}` : ''}</div>
+          </div>
+        </div>
+        <button class="btn danger" data-remove="${i}">Remove</button>
+      </div>`).join('');
+
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = customMenuItems[+btn.dataset.remove];
+        if(entry && MENU[entry.category]){
+          const pos = MENU[entry.category].findIndex(i => i.id === entry.item.id);
+          if(pos !== -1) MENU[entry.category].splice(pos, 1);
+        }
+        customMenuItems.splice(+btn.dataset.remove, 1);
+        saveCustomMenuItems();
+        renderCustomList();
+        renderBundlesList();
+      });
+    });
+  }
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const category = categorySelect.value;
+    const name = itemName.value.trim();
+    const price = Number(itemPrice.value);
+
+    if(!name || !Number.isFinite(price) || price <= 0){
+      formWarning.style.display = 'block';
+      itemName.style.borderColor = !name ? '#e63946' : '';
+      itemPrice.style.borderColor = (!Number.isFinite(price) || price <= 0) ? '#e63946' : '';
+      return;
+    }
+
+    const id = `custom-${category}-${Date.now()}`;
+    const icon = DEFAULT_ICONS[category] || '⭐';
+    const item = { id, name, icon, price, type: category === 'bundles' ? 'bundle' : (category === 'classic' ? 'drink' : 'extra') };
+
+    if(category === 'bundles'){
+      const description = itemDescription.value.trim();
+      if(description) item.description = description;
+      item.components = [];
+    }
+
+    customMenuItems.push({ category, item });
+    saveCustomMenuItems();
+    MENU[category].push(item);
+
+    resetForm();
+    renderCustomList();
+    renderBundlesList();
+
+    if(category === 'bundles'){
+      openBundleEditModal(id);
+    }
+  });
+
+  // ---------- Theme (kept simple/independent on this page) ----------
+  const themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(THEME_KEY, t);
+    themeBtn.textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+    themeBtn.setAttribute('aria-pressed', t === 'dark');
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  themeBtn.addEventListener('click', () => {
+    applyTheme((localStorage.getItem(THEME_KEY) || 'dark') === 'dark' ? 'light' : 'dark');
+  });
+
+  // ---------- Edit Existing Items & Bundles ----------
+  function saveMenuOverrides(){
+    syncStateToServer();
+  }
+
+  const editCategoryButtons = document.getElementById('editCategoryButtons');
+  const editList = document.getElementById('editList');
+  const editBundlesList = document.getElementById('editBundlesList');
+  let activeEditCategory = null;
+
+  const CONTENT_CATEGORIES = { classic:'🍔 A La Carte', iceCream:'🍦 Ice Cream', extras:'🎁 Extras' };
+
+  function effectiveItem(item){
+    return { ...item, ...(menuOverrides[item.id] || {}) };
+  }
+
+  // Working copy of each bundle's components while the panel is open, keyed by item id.
+  // Nothing is saved to storage until that bundle's Save button is clicked.
+  const workingComponents = {};
+
+  function blankComponent(){
+    return { type:'choice', category:'classic', qty:0, itemId:null, poolIds:[] };
+  }
+
+  function componentRowHTML(comp, idx){
+    const itemOptions = (MENU[comp.category] || []).map(i => `<option value="${i.id}" ${comp.itemId===i.id?'selected':''}>${i.name}</option>`).join('');
+    const poolCheckboxes = (MENU[comp.category] || []).map(i => `
+      <label class="pool-checkbox">
+        <input type="checkbox" class="comp-pool-item" value="${i.id}" ${(comp.poolIds||[]).includes(i.id)?'checked':''}>
+        <span>${i.name}</span>
+      </label>`).join('');
+
+    return `
+      <div class="component-row" data-idx="${idx}">
+        <div class="top-fields">
+          <select class="comp-type">
+            <option value="choice" ${comp.type==='choice'?'selected':''}>Choice</option>
+            <option value="fixed" ${comp.type==='fixed'?'selected':''}>Fixed</option>
+          </select>
+          <select class="comp-category">
+            ${Object.entries(CONTENT_CATEGORIES).map(([k,label]) => `<option value="${k}" ${comp.category===k?'selected':''}>${label}</option>`).join('')}
+          </select>
+          <input type="number" class="comp-qty" min="0" step="1" value="${comp.qty ?? 0}" placeholder="Qty" style="${(!comp.qty || comp.qty<=0) ? 'border-color:#e63946;' : ''}">
+          <button class="btn danger remove-component">Remove</button>
+        </div>
+        ${comp.type==='fixed' ? `
+          <div>
+            <label style="margin-bottom:4px;">Which item is always included</label>
+            <select class="comp-item">${itemOptions}</select>
+          </div>
+        ` : `
+          <div>
+            <label style="margin-bottom:4px;">Limit the choices to (leave none checked = whole category)</label>
+            <div class="pool-checkboxes">${poolCheckboxes}</div>
+          </div>
+        `}
+      </div>`;
+  }
+
+  function renderComponentsBuilder(container, itemId){
+    container.innerHTML = `
+      <div class="components-label">Bundle Contents</div>
+      <div class="components-wrap" data-item-id="${itemId}"></div>
+      <div class="toolrow" style="justify-content:flex-start;">
+        <button class="btn ghost add-component">+ Add Component</button>
+      </div>`;
+
+    const wrap = container.querySelector('.components-wrap');
+
+    function renderRows(){
+      const comps = workingComponents[itemId];
+      wrap.innerHTML = comps.map((c,i) => componentRowHTML(c,i)).join('') || '<div class="empty">No components yet — this bundle just adds itself with nothing included.</div>';
+
+      wrap.querySelectorAll('.component-row').forEach(row => {
+        const idx = +row.dataset.idx;
+        const comp = comps[idx];
+
+        row.querySelector('.comp-type').addEventListener('change', e => {
+          comp.type = e.target.value;
+          renderRows();
+        });
+        row.querySelector('.comp-category').addEventListener('change', e => {
+          comp.category = e.target.value;
+          comp.itemId = null;
+          comp.poolIds = [];
+          renderRows();
+        });
+        row.querySelector('.comp-qty').addEventListener('input', e => {
+          comp.qty = Math.max(0, Number(e.target.value) || 0);
+          e.target.style.borderColor = comp.qty > 0 ? '' : '#e63946';
+        });
+        row.querySelector('.remove-component').addEventListener('click', () => {
+          comps.splice(idx,1);
+          renderRows();
+        });
+
+        const itemSelect = row.querySelector('.comp-item');
+        if(itemSelect){
+          itemSelect.addEventListener('change', e => { comp.itemId = e.target.value; });
+          if(!comp.itemId && itemSelect.options.length){ comp.itemId = itemSelect.options[0].value; }
+        }
+        const poolCheckboxes = row.querySelectorAll('.comp-pool-item');
+        if(poolCheckboxes.length){
+          poolCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+              comp.poolIds = [...row.querySelectorAll('.comp-pool-item:checked')].map(el => el.value);
+            });
+          });
+        }
+      });
+    }
+
+    container.querySelector('.add-component').addEventListener('click', () => {
+      workingComponents[itemId].push(blankComponent());
+      renderRows();
+    });
+
+    renderRows();
+  }
+
+  const bundleEditModal = document.getElementById('bundleEditModal');
+  const bundleEditModalTitle = document.getElementById('bundleEditModalTitle');
+  const bundleEditModalBody = document.getElementById('bundleEditModalBody');
+  document.getElementById('closeBundleEditModal').addEventListener('click', () => bundleEditModal.close());
+
+  function renderBundlesList(){
+    const bundles = (MENU.bundles || []).filter(b => !isDeleted(b.id));
+
+    if(!bundles.length){
+      editBundlesList.innerHTML = '<div class="empty">No bundles yet.</div>';
+      return;
+    }
+
+    editBundlesList.innerHTML = bundles.map(raw => {
+      const item = effectiveItem(raw);
+      const hasOverride = !!menuOverrides[raw.id];
+      return `
+        <button class="btn bundle-button ${hasOverride ? 'overridden' : ''}" data-id="${raw.id}">
+          <span>${item.name}</span>
+          ${hasOverride ? '<span class="override-tag">Edited</span>' : ''}
+        </button>`;
+    }).join('');
+
+    editBundlesList.querySelectorAll('.bundle-button').forEach(btn => {
+      btn.addEventListener('click', () => openBundleEditModal(btn.dataset.id));
+    });
+  }
+
+  function openBundleEditModal(id){
+    const raw = MENU.bundles.find(b => b.id === id);
+    if(!raw) return;
+
+    const item = effectiveItem(raw);
+    const hasOverride = !!menuOverrides[id];
+    if(!workingComponents[id]){
+      workingComponents[id] = Array.isArray(item.components) ? item.components.map(c => ({...c, poolIds:[...(c.poolIds||[])]})) : [];
+    }
+
+    bundleEditModalTitle.textContent = item.name;
+    bundleEditModalBody.innerHTML = `
+      <input type="text" class="edit-name name-input" value="${item.name.replace(/"/g,'&quot;')}">
+      <input type="text" class="edit-description full" placeholder="Description (shown under the name, like on the calculator)" value="${(item.description||'').replace(/"/g,'&quot;')}" style="font-size:.85rem;color:var(--muted);border:1px dashed var(--border);border-radius:8px;padding:6px 8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:.85rem;color:var(--muted);">Price $</span>
+        <input type="number" class="edit-price" value="${item.price}" min="0" step="1" style="width:110px;border:1px dashed var(--border);border-radius:8px;padding:6px 8px;">
+      </div>
+      <div class="bundle-components-container"></div>
+      <div class="actions">
+        <button class="btn danger delete-btn" style="margin-right:auto;">Delete Bundle</button>
+        ${hasOverride ? `<button class="btn ghost reset-btn">Reset to Default</button>` : ''}
+        <button class="btn primary save-btn">Save</button>
+      </div>`;
+
+    bundleEditModalBody.querySelector('.delete-btn').addEventListener('click', () => {
+      deleteItem(id);
+      bundleEditModal.close();
+    });
+
+    renderComponentsBuilder(bundleEditModalBody.querySelector('.bundle-components-container'), id);
+
+    bundleEditModalBody.querySelector('.save-btn').addEventListener('click', () => {
+      const name = bundleEditModalBody.querySelector('.edit-name').value.trim();
+      const price = Number(bundleEditModalBody.querySelector('.edit-price').value);
+      if(!name || !Number.isFinite(price) || price <= 0) return;
+
+      const comps = workingComponents[id] || [];
+      const hasZeroQty = comps.some(c => !c.qty || c.qty <= 0);
+      if(hasZeroQty){
+        showAdminAlert('Every component needs a quantity greater than 0 before you can save. Components still at 0 are outlined in red.', 'Set a Quantity');
+        return;
+      }
+
+      const description = bundleEditModalBody.querySelector('.edit-description').value.trim();
+      const components = comps.map(c => {
+        const clean = { type:c.type, category:c.category, qty:Math.max(1, Number(c.qty)||1) };
+        if(c.type==='fixed') clean.itemId = c.itemId;
+        else if(Array.isArray(c.poolIds) && c.poolIds.length) clean.poolIds = c.poolIds;
+        return clean;
+      });
+
+      menuOverrides[id] = { name, price, description, components };
+      saveMenuOverrides();
+      bundleEditModal.close();
+      renderBundlesList();
+    });
+
+    const resetBtn = bundleEditModalBody.querySelector('.reset-btn');
+    if(resetBtn){
+      resetBtn.addEventListener('click', () => {
+        delete menuOverrides[id];
+        delete workingComponents[id];
+        saveMenuOverrides();
+        bundleEditModal.close();
+        renderBundlesList();
+      });
+    }
+
+    bundleEditModal.showModal();
+  }
+
+  function renderEditList(){
+    if(!activeEditCategory){
+      editList.innerHTML = '';
+      return;
+    }
+
+    const items = (MENU[activeEditCategory] || []).filter(i => !i.id.startsWith('custom-') && !isDeleted(i.id)); // custom items are managed above, not here
+
+    if(!items.length){
+      editList.innerHTML = '<div class="empty">No items in this category.</div>';
+      return;
+    }
+
+    editList.innerHTML = items.map(raw => {
+      const item = effectiveItem(raw);
+      const hasOverride = !!menuOverrides[raw.id];
+
+      return `
+        <div class="edit-row ${hasOverride ? 'overridden' : ''}" data-id="${raw.id}">
+          ${hasOverride ? '<div class="override-tag">Edited</div>' : ''}
+          <div class="fields">
+            <input type="text" class="edit-name full" value="${item.name.replace(/"/g,'&quot;')}">
+            <input type="number" class="edit-price" value="${item.price}" min="0" step="1">
+          </div>
+          <div class="actions">
+            <button class="btn danger delete-btn" style="margin-right:auto;">Delete</button>
+            ${hasOverride ? `<button class="btn ghost reset-btn">Reset to Default</button>` : ''}
+            <button class="btn primary save-btn">Save</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    editList.querySelectorAll('.edit-row').forEach(row => {
+      const id = row.dataset.id;
+
+      row.querySelector('.delete-btn').addEventListener('click', () => deleteItem(id));
+
+      row.querySelector('.save-btn').addEventListener('click', () => {
+        const name = row.querySelector('.edit-name').value.trim();
+        const price = Number(row.querySelector('.edit-price').value);
+        if(!name || !Number.isFinite(price) || price <= 0) return;
+
+        menuOverrides[id] = { name, price };
+        saveMenuOverrides();
+        renderEditList();
+      });
+
+      const resetBtn = row.querySelector('.reset-btn');
+      if(resetBtn){
+        resetBtn.addEventListener('click', () => {
+          delete menuOverrides[id];
+          saveMenuOverrides();
+          renderEditList();
+        });
+      }
+    });
+  }
+
+  editCategoryButtons.querySelectorAll('[data-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const category = btn.dataset.category;
+      activeEditCategory = activeEditCategory === category ? null : category;
+
+      editCategoryButtons.querySelectorAll('[data-category]').forEach(b => {
+        b.classList.toggle('active', b.dataset.category === activeEditCategory);
+      });
+
+      renderEditList();
+    });
+  });
+
+  // ---------- Shop Settings (discount tiers & delivery zone fees) ----------
+  let workingDiscountTiers = SHOP_SETTINGS.discountTiers.map(t => ({...t}));
+  let workingDeliveryZones = SHOP_SETTINGS.deliveryZones.map(z => ({...z}));
+
+  function renderDiscountTiersList(){
+    const container = document.getElementById('discountTiersList');
+    container.innerHTML = workingDiscountTiers.map((t,i) => `
+      <div class="settings-row" data-idx="${i}">
+        <input type="text" class="tier-label" value="${t.label.replace(/"/g,'&quot;')}" placeholder="Label (e.g. VIP)">
+        <input type="number" class="tier-pct" value="${t.pct}" min="1" max="100" step="1">
+        <button class="btn danger remove-tier">Remove</button>
+      </div>`).join('') || '<div class="empty">No extra discount tiers — only the default 0% will show.</div>';
+
+    container.querySelectorAll('.settings-row').forEach(row => {
+      const idx = +row.dataset.idx;
+      row.querySelector('.tier-label').addEventListener('input', e => { workingDiscountTiers[idx].label = e.target.value; });
+      row.querySelector('.tier-pct').addEventListener('input', e => { workingDiscountTiers[idx].pct = Number(e.target.value) || 0; });
+      row.querySelector('.remove-tier').addEventListener('click', () => {
+        workingDiscountTiers.splice(idx,1);
+        renderDiscountTiersList();
+      });
+    });
+  }
+
+  function renderDeliveryZonesList(){
+    const container = document.getElementById('deliveryZonesList');
+    container.innerHTML = workingDeliveryZones.map((z,i) => `
+      <div class="settings-row" data-idx="${i}">
+        <input type="text" class="zone-label" value="${z.label.replace(/"/g,'&quot;')}" placeholder="Zone name (e.g. Sandy)">
+        <input type="number" class="zone-fee" value="${z.fee}" min="0" step="5">
+        <button class="btn danger remove-zone">Remove</button>
+      </div>`).join('') || '<div class="empty">No delivery zones — the Delivery option won\'t charge a fee.</div>';
+
+    container.querySelectorAll('.settings-row').forEach(row => {
+      const idx = +row.dataset.idx;
+      row.querySelector('.zone-label').addEventListener('input', e => { workingDeliveryZones[idx].label = e.target.value; });
+      row.querySelector('.zone-fee').addEventListener('input', e => { workingDeliveryZones[idx].fee = Number(e.target.value) || 0; });
+      row.querySelector('.remove-zone').addEventListener('click', () => {
+        workingDeliveryZones.splice(idx,1);
+        renderDeliveryZonesList();
+      });
+    });
+  }
+
+  const shopSettingsModal = document.getElementById('shopSettingsModal');
+  document.getElementById('openShopSettingsBtn').addEventListener('click', () => shopSettingsModal.showModal());
+
+  const ingredientsModal = document.getElementById('ingredientsModal');
+  document.getElementById('openIngredientsBtn').addEventListener('click', () => ingredientsModal.showModal());
+  document.getElementById('closeIngredientsModal').addEventListener('click', () => ingredientsModal.close());
+
+  const recipesModal = document.getElementById('recipesModal');
+  document.getElementById('openRecipesBtn').addEventListener('click', () => recipesModal.showModal());
+  document.getElementById('closeRecipesModal').addEventListener('click', () => recipesModal.close());
+  document.getElementById('closeShopSettingsModal').addEventListener('click', () => shopSettingsModal.close());
+
+  document.getElementById('addTierBtn').addEventListener('click', () => {
+    workingDiscountTiers.push({ label: 'New Tier', pct: 5 });
+    renderDiscountTiersList();
+  });
+
+  document.getElementById('addZoneBtn').addEventListener('click', () => {
+    workingDeliveryZones.push({ key: `zone-${Date.now()}`, label: 'New Zone', fee: 0 });
+    renderDeliveryZonesList();
+  });
+
+  document.getElementById('saveShopSettingsBtn').addEventListener('click', async () => {
+    const cleanTiers = workingDiscountTiers
+      .map(t => ({ label: (t.label||'').trim() || `${t.pct}%`, pct: Math.max(1, Math.min(100, Number(t.pct)||0)) }))
+      .filter(t => t.pct > 0);
+    const cleanZones = workingDeliveryZones
+      .map(z => ({ key: z.key, label: (z.label||'').trim() || z.key, fee: Math.max(0, Number(z.fee)||0) }))
+      .filter(z => z.label);
+
+    SHOP_SETTINGS.discountTiers = cleanTiers;
+    SHOP_SETTINGS.deliveryZones = cleanZones;
+
+    const ok = await syncStateToServer();
+
+    workingDiscountTiers = cleanTiers.map(t => ({...t}));
+    workingDeliveryZones = cleanZones.map(z => ({...z}));
+    renderDiscountTiersList();
+    renderDeliveryZonesList();
+    if(ok) showAdminAlert('Shop settings saved for everyone.', 'Saved');
+  });
+
+  document.getElementById('resetShopSettingsBtn').addEventListener('click', () => {
+    showAdminConfirm('Reset discount tiers and delivery zones back to the original defaults for everyone?', async () => {
+      SHOP_SETTINGS.discountTiers = JSON.parse(JSON.stringify(DEFAULT_SHOP_SETTINGS.discountTiers));
+      SHOP_SETTINGS.deliveryZones = JSON.parse(JSON.stringify(DEFAULT_SHOP_SETTINGS.deliveryZones));
+      await syncStateToServer();
+      workingDiscountTiers = SHOP_SETTINGS.discountTiers.map(t => ({...t}));
+      workingDeliveryZones = SHOP_SETTINGS.deliveryZones.map(z => ({...z}));
+      renderDiscountTiersList();
+      renderDeliveryZonesList();
+    }, 'Reset Shop Settings?');
+  });
+
+  // ---------- Ingredients ----------
+  function allKnownIngredientNames(){
+    const names = new Set(Object.keys(INGREDIENT_PRICES));
+    Object.values(RECIPE_MAP).forEach(recipe => Object.keys(recipe).forEach(n => names.add(n)));
+    return [...names].sort((a,b) => a.localeCompare(b));
+  }
+
+  function renderIngredientsList(){
+    const list = document.getElementById('ingredientsList');
+    const names = allKnownIngredientNames();
+
+    if(!names.length){
+      list.innerHTML = '<div class="empty">No ingredients yet.</div>';
+      return;
+    }
+
+    list.innerHTML = names.map(name => {
+      const price = INGREDIENT_PRICES[name];
+      const isCustom = customIngredients.some(i => i.name === name);
+      return `
+        <div class="custom-row">
+          <div>
+            <strong>${name}</strong>
+            <div class="meta">${price ? currency(price) : 'No price set'}</div>
+          </div>
+          ${isCustom ? `<button class="btn danger" data-remove-ingredient="${name.replace(/"/g,'&quot;')}">Remove</button>` : ''}
+        </div>`;
+    }).join('');
+
+    list.querySelectorAll('[data-remove-ingredient]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        showAdminConfirm(`Remove "${btn.dataset.removeIngredient}" from the ingredients list? Any recipes using it will keep the name, just without a set price.`, () => {
+          const name = btn.dataset.removeIngredient;
+          customIngredients = customIngredients.filter(i => i.name !== name);
+          delete INGREDIENT_PRICES[name];
+          syncStateToServer();
+          renderIngredientsList();
+        }, 'Remove Ingredient?');
+      });
+    });
+  }
+
+  document.getElementById('addIngredientBtn').addEventListener('click', () => {
+    const nameInput = document.getElementById('newIngredientName');
+    const priceInput = document.getElementById('newIngredientPrice');
+    const name = nameInput.value.trim();
+    const price = Number(priceInput.value) || 0;
+
+    if(!name){
+      nameInput.style.borderColor = '#e63946';
+      return;
+    }
+    nameInput.style.borderColor = '';
+
+    const existing = customIngredients.find(i => i.name === name);
+    if(existing) existing.price = price;
+    else customIngredients.push({ name, price });
+
+    INGREDIENT_PRICES[name] = price;
+    syncStateToServer();
+    renderIngredientsList();
+    renderRecipeItemsList();
+
+    nameInput.value = '';
+    priceInput.value = '';
+  });
+
+  // ---------- Recipes ----------
+  let activeRecipeCategory = null;
+
+  function findAnyMenuItemById(id){
+    for(const arr of Object.values(MENU)){
+      if(!Array.isArray(arr)) continue;
+      const found = arr.find(i => i.id === id);
+      if(found) return found;
+    }
+    return null;
+  }
+
+  function renderRecipeItemsList(){
+    const list = document.getElementById('recipeItemsList');
+    if(!activeRecipeCategory){ list.innerHTML = ''; return; }
+
+    const items = MENU[activeRecipeCategory] || [];
+    if(!items.length){
+      list.innerHTML = '<div class="empty">No items in this category.</div>';
+      return;
+    }
+
+    list.innerHTML = items.map(raw => {
+      const item = effectiveItem(raw);
+      const hasRecipe = !!RECIPE_MAP[raw.id];
+      return `
+        <button class="btn recipe-item-button ${hasRecipe ? 'has-recipe' : ''}" data-recipe-item="${raw.id}">
+          <span>${item.name}</span>
+          ${hasRecipe ? '<span class="override-tag">Has Recipe</span>' : '<span class="muted" style="font-size:.78rem;">No recipe</span>'}
+        </button>`;
+    }).join('');
+
+    list.querySelectorAll('[data-recipe-item]').forEach(btn => {
+      btn.addEventListener('click', () => openRecipeEditModal(btn.dataset.recipeItem));
+    });
+  }
+
+  document.getElementById('recipeCategoryButtons').querySelectorAll('[data-recipe-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const category = btn.dataset.recipeCategory;
+      activeRecipeCategory = activeRecipeCategory === category ? null : category;
+      document.getElementById('recipeCategoryButtons').querySelectorAll('[data-recipe-category]').forEach(b => {
+        b.classList.toggle('active', b.dataset.recipeCategory === activeRecipeCategory);
+      });
+      renderRecipeItemsList();
+    });
+  });
+
+  const recipeEditModal = document.getElementById('recipeEditModal');
+  const recipeEditModalTitle = document.getElementById('recipeEditModalTitle');
+  const recipeEditModalBody = document.getElementById('recipeEditModalBody');
+  document.getElementById('closeRecipeEditModal').addEventListener('click', () => recipeEditModal.close());
+
+  let workingRecipeLines = [];
+
+  function recipeLineHTML(line, idx){
+    const ingredientOptions = allKnownIngredientNames().map(n => `<option value="${n}" ${line.name===n?'selected':''}>${n}</option>`).join('');
+    return `
+      <div class="recipe-row" data-idx="${idx}">
+        <select class="recipe-ingredient">
+          <option value="">Choose ingredient…</option>
+          ${ingredientOptions}
+        </select>
+        <input type="number" class="recipe-qty" min="1" step="1" value="${line.qty||1}">
+        <button class="btn danger remove-recipe-line">Remove</button>
+      </div>`;
+  }
+
+  function renderRecipeLines(){
+    recipeEditModalBody.querySelector('#recipeLinesContainer').innerHTML =
+      workingRecipeLines.map((line,idx) => recipeLineHTML(line, idx)).join('') ||
+      '<div class="empty">No ingredients yet — add one below.</div>';
+
+    recipeEditModalBody.querySelectorAll('.recipe-row').forEach(row => {
+      const idx = +row.dataset.idx;
+      row.querySelector('.recipe-ingredient').addEventListener('change', e => {
+        workingRecipeLines[idx].name = e.target.value;
+      });
+      row.querySelector('.recipe-qty').addEventListener('input', e => {
+        workingRecipeLines[idx].qty = Math.max(1, Number(e.target.value) || 1);
+      });
+      row.querySelector('.remove-recipe-line').addEventListener('click', () => {
+        workingRecipeLines.splice(idx,1);
+        renderRecipeLines();
+      });
+    });
+  }
+
+  function openRecipeEditModal(itemId){
+    const item = findAnyMenuItemById(itemId);
+    if(!item) return;
+
+    const currentRecipe = RECIPE_MAP[itemId] || {};
+    workingRecipeLines = Object.entries(currentRecipe).map(([name,qty]) => ({ name, qty }));
+    const hasOverride = !!recipeOverrides[itemId];
+
+    recipeEditModalTitle.textContent = `Recipe: ${item.name}`;
+    recipeEditModalBody.innerHTML = `
+      <div id="recipeLinesContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="toolrow" style="justify-content:flex-start;">
+        <button class="btn ghost" id="addRecipeLineBtn">+ Add Ingredient</button>
+      </div>
+      <div class="toolrow" style="justify-content:flex-end;">
+        ${hasOverride ? `<button class="btn ghost" id="resetRecipeBtn">Reset to Default</button>` : ''}
+        <button class="btn primary" id="saveRecipeBtn">Save Recipe</button>
+      </div>`;
+
+    renderRecipeLines();
+
+    recipeEditModalBody.querySelector('#addRecipeLineBtn').addEventListener('click', () => {
+      workingRecipeLines.push({ name:'', qty:1 });
+      renderRecipeLines();
+    });
+
+    recipeEditModalBody.querySelector('#saveRecipeBtn').addEventListener('click', () => {
+      const cleanLines = workingRecipeLines.filter(l => l.name && l.qty > 0);
+      if(!cleanLines.length){
+        showAdminAlert('Add at least one ingredient before saving, or use Reset to Default / just leave this item without a recipe.', 'Nothing to Save');
+        return;
+      }
+      const recipe = {};
+      cleanLines.forEach(l => { recipe[l.name] = l.qty; });
+
+      recipeOverrides[itemId] = recipe;
+      RECIPE_MAP[itemId] = recipe;
+      syncStateToServer();
+      recipeEditModal.close();
+      renderRecipeItemsList();
+    });
+
+    const resetBtn = recipeEditModalBody.querySelector('#resetRecipeBtn');
+    if(resetBtn){
+      resetBtn.addEventListener('click', () => {
+        delete recipeOverrides[itemId];
+        if(DEFAULT_RECIPE_MAP[itemId]) RECIPE_MAP[itemId] = DEFAULT_RECIPE_MAP[itemId];
+        else delete RECIPE_MAP[itemId];
+        syncStateToServer();
+        recipeEditModal.close();
+        renderRecipeItemsList();
+      });
+    }
+
+    recipeEditModal.showModal();
+  }
+
+
+  loadStateFromServer();
+</script>
+</body>
+</html>

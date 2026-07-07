@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Burger Shot Order Calculator</title>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/TNstx6j/BS.png">
+  <meta name="theme-color" content="#0b2e70">
+  <style>
+    :root {
+      --brown:#d62828; --tan:#0b2e70; --cream:#eef2ff; --ink:#111827; --muted:#6b7280;
+      --border:#e5e7eb; --shadow:0 10px 30px rgba(0,0,0,.10);
+      --bg:#f3f4ff; --panel:#fff; --card:#fff; --chip:#eef2ff; --text:var(--ink); --accent:var(--brown); --radius:16px;
+      --bg-dark:#020617; --panel-dark:#020617; --card-dark:#050816; --chip-dark:#111827; --text-dark:#e5e7eb; --border-dark:#1f2937;
+    }
+    [data-theme="dark"]{ --bg:var(--bg-dark); --panel:var(--panel-dark); --card:var(--card-dark); --chip:var(--chip-dark); --text:var(--text-dark); --border:var(--border-dark); }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,"Noto Sans",Arial}
+    h1,h2,h3,h4{font-family:Georgia,"Times New Roman",serif;letter-spacing:.2px}
+    .container{max-width:1600px;margin:32px auto;padding:0 16px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand .logo{width:48px;height:48px;border-radius:12px;box-shadow:var(--shadow);position:relative;background:var(--brown)}
+    .brand h1{margin:0;font-size:1.4rem;letter-spacing:.3px}
+    .grid{display:grid;grid-template-columns:minmax(280px,1.3fr) minmax(220px,.85fr) minmax(220px,.85fr);gap:20px}
+    .grid[hidden]{display:none}
+    .panel[hidden]{display:none}
+    @media (max-width:760px){.grid{grid-template-columns:1fr}}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column}
+    .panel h2{margin:0;padding:16px 18px;font-size:1rem;border-bottom:1px solid var(--border)}
+    .panel .content{padding:16px;display:flex;flex-direction:column;flex:1}
+    .section{margin-bottom:16px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;align-items:stretch}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:148px;height:100%}
+    .card h3{margin:0;font-size:1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
+    #cateringPackages .card h3{font-size:1.25rem}
+    .card .btn{margin-top:auto}
+    .price{color:var(--accent);font-weight:700}
+    .muted{color:var(--muted);font-size:.9rem}
+    .qty{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:8px;margin-top:6px}
+    .qty.static{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px}
+    .qty.static button{width:auto;padding:4px 10px;font-size:12px}
+    .qty button{height:36px;border-radius:10px;border:1px solid var(--border);background:var(--chip);color:var(--text);cursor:pointer;font-size:18px}
+    .qty output{text-align:center}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);cursor:pointer;font-weight:600;text-decoration:none;transition:background .15s ease,color .15s ease,border-color .15s ease,filter .15s ease}
+    .btn.primary{background:linear-gradient(135deg,var(--brown),var(--tan));border:none;color:#fff}
+    .btn.block{width:100%}
+    .btn.ghost{background:transparent}
+    .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn.primary:hover{filter:brightness(.92)}
+    #menu-catering button:hover, #orders-catering button:hover, #checkout-catering button:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+    #resetBtn2{transition:background .15s ease,color .15s ease,border-color .15s ease}
+    #resetBtn2:hover{background:#e63946;border-color:#e63946;color:#fff}
+    .toolrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .chip{padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--muted);font-weight:700;font-size:.85rem}
+    .divider{height:1px;background:var(--border);margin:8px 0}
+    .summary{display:flex;flex-direction:column;gap:14px}
+    .summary .row{display:flex;justify-content:space-between;align-items:center}
+    .summary .row.total{font-size:1.2rem;font-weight:800}
+    .discount{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border:1px solid var(--border);border-radius:12px;padding:10px 14px}
+    .discount-buttons{display:flex;gap:8px;flex:1;justify-content:flex-end}
+    .discount-btn{padding:6px 14px;width:64px;font-size:.85rem}
+    .discount-btn[aria-pressed="true"]{background:linear-gradient(135deg,var(--brown),var(--tan));border:1px solid transparent;background-clip:padding-box;box-shadow:0 0 0 1px var(--brown);color:#fff}
+    .fulfill-btn[aria-pressed="true"]{background:linear-gradient(135deg,var(--brown),var(--tan));border:1px solid transparent;background-clip:padding-box;box-shadow:0 0 0 1px var(--brown);color:#fff}
+    .fulfill-btn{min-width:90px}
+    .zone-btn[aria-pressed="true"]{background:linear-gradient(135deg,var(--brown),var(--tan));border:1px solid transparent;background-clip:padding-box;box-shadow:0 0 0 1px var(--brown);color:#fff}
+    .order-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:6px}
+    .meal-group{border:1px solid var(--accent);border-radius:14px;padding:6px;margin:10px 10px;background:var(--chip);position:relative}
+    .meal-group .cart-item{padding:8px}
+    .meal-group .cart-item:first-child{border-bottom:1px solid var(--border);margin-bottom:2px;padding-right:26px}
+    .meal-group .cart-item.included{padding:6px 8px}
+    .remove-meal-btn{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;border:1px solid #e63946;color:#e63946;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:.8rem;line-height:1;cursor:pointer;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.2);z-index:1;}
+    .remove-meal-btn:hover{background:#e63946;color:#fff;}
+    .cart-item{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px;border-bottom:1px dashed var(--border)}
+    .cart-item:last-child{border-bottom:none}
+    .small{font-size:.85rem;color:var(--muted)}
+    dialog{width:min(760px,92vw);background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:0}
+    dialog::backdrop{background:rgba(0,0,0,.6)}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+    .modal-body{padding:16px;display:grid;gap:18px}
+    .option{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+    .selector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+    .select-card{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+    .select-title{font-weight:700}
+    .select-qty{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:8px}
+    .select-qty button{height:32px;border-radius:8px;border:1px solid var(--border);background:var(--chip)}
+    .ing-list{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .recipe-group{margin-bottom:20px}
+    .recipe-group h3{margin:0 0 10px 0}
+    .order-summary-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    @media (max-width:520px){.order-summary-cols{grid-template-columns:1fr}}
+    .recipe-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+    .recipe-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+    .recipe-card h4{margin:0;font-size:1rem}
+    #checkout-regular,#checkout-catering{display:flex;flex-direction:column;flex:1}
+    #checkout-regular[hidden],#checkout-catering[hidden]{display:none}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true" style="overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          <img src="https://i.ibb.co/TNstx6j/BS.png" alt="Burger Shot logo" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <div>
+          <h1>Burger Shot Order Calculator</h1>
+          <div class="muted">Pick combos & a la carte items, apply discounts, and get an exact total.</div>
+        </div>
+      </div>
+      <div class="toolrow">
+        <input type="text" id="employeeName" placeholder="Employee name" style="padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.9rem;width:160px;">
+        <a href="admin.html" class="btn ghost" title="Add items to the menu">⚙️ Manage Menu</a>
+        <button class="btn ghost" id="themeBtn" aria-pressed="false" title="Toggle dark mode">🌙 Dark</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <h2 id="menuPanelTitle">Menu</h2>
+        <div class="content">
+          <div id="menu-regular">
+            <div class="section">
+              <h3 style="margin:0 0 8px 0">Combos & Bundles</h3>
+              <div class="cards" id="mealBundles"></div>
+            </div>
+
+            <div class="section">
+              <h3 style="margin:0 0 8px 0">A La Carte</h3>
+              <button class="btn block" id="openDrinksBtn">🍔 View A La Carte</button>
+            </div>
+
+            <div class="section">
+              <h3 style="margin:0 0 8px 0">Ice Cream</h3>
+              <button class="btn block" id="openIceCreamBtn">🍦 View Ice Cream</button>
+            </div>
+
+            <div class="section">
+              <h3 style="margin:0 0 8px 0">Extras</h3>
+              <button class="btn block" id="openExtrasBtn">🎁 View Extras</button>
+            </div>
+          </div>
+
+          <div id="menu-catering" hidden>
+            <div class="section">
+              <h3 style="margin:0 0 8px 0">🎉 Catering Packages</h3>
+              <div class="cards" id="cateringPackages"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Orders</h2>
+        <div class="content">
+          <div id="orders-regular" role="tabpanel">
+            <div id="cart" class="order-card">
+              <div class="cart-item muted">Your order is empty. Add a combo or item to get started.</div>
+            </div>
+          </div>
+
+          <div id="orders-catering" role="tabpanel" hidden>
+            <div id="cateringCart" class="order-card">
+              <div class="cart-item muted">Your catering order is empty. Add a package to get started.</div>
+            </div>
+          </div>
+
+          <div id="tab-history" role="tabpanel" hidden>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+              <button type="button" class="btn" id="historyViewList" aria-pressed="true" style="width:100%;">📜 Chronological</button>
+              <button type="button" class="btn" id="historyViewEmployees" aria-pressed="false" style="width:100%;">👥 By Employee</button>
+            </div>
+            <div id="historyList" class="summary" style="gap:12px;"></div>
+          </div>
+
+          <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border);">
+            <button type="button" class="btn block" id="historyToggleBtn" data-tab="history">📜 View History</button>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 18px;border-bottom:1px solid var(--border);">
+          <h2 id="checkoutPanelTitle" style="margin:0;padding:0;border:none;">Checkout</h2>
+          <!-- Loyalty program hidden for now — design still being decided. Flip LOYALTY_ENABLED
+               to true in the script below and remove display:none here to bring it back. -->
+          <div style="display:none;align-items:center;gap:8px;">
+            <input type="text" id="loyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8" style="padding:7px 10px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.85rem;width:140px;">
+            <div id="loyaltyStatus" class="muted" style="font-size:.78rem;"></div>
+          </div>
+        </div>
+        <div class="content">
+          <div id="checkout-regular">
+            <div class="option" style="margin-bottom:10px;">
+              <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+                <div style="display:flex; gap:10px;">
+                  <button type="button" class="btn fulfill-btn" data-fulfill="pickup" style="flex:1;">Pick Up</button>
+                  <button type="button" class="btn fulfill-btn" data-fulfill="delivery" style="flex:1;">Delivery</button>
+                </div>
+                <div id="zoneButtons" style="display:none; gap:10px; width:100%;"></div>
+              </div>
+            </div>
+
+            <div class="discount">
+              <label>Apply Discount</label>
+              <div id="discountButtons" class="discount-buttons"></div>
+            </div>
+
+            <div class="summary" style="margin-top:12px;">
+              <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+              <div class="row" id="deliveryRow" style="display:none;"><span>Delivery Fee</span><strong id="deliveryFee">$0.00</strong></div>
+              <div class="row"><span>Discount</span><strong id="discount">-$0.00</strong></div>
+              <div class="row total"><span>Total</span><strong id="total">$0.00</strong></div>
+            </div>
+
+            <div class="right-actions" style="margin-top:12px;display:flex;gap:10px;">
+              <button class="btn primary block" id="checkoutBtn2" style="flex:1;">Checkout</button>
+              <button class="btn ghost block" id="resetBtn2" style="flex:1;">Clear Basket</button>
+            </div>
+
+            <div id="itemTotalsWrap">
+              <div class="divider" style="margin-top:16px;"></div>
+              <h3 style="margin:0 0 8px 0">Item Totals (for collecting)</h3>
+              <div id="itemTotals" class="order-card" style="padding:12px;"></div>
+            </div>
+
+            <div class="divider" style="margin-top:16px;"></div>
+
+            <h3 style="margin:0 0 8px 0;">🧺 Ingredients</h3>
+            <div class="small muted" style="margin-bottom:6px;">Ingredients required for above.</div>
+            <div id="ingredientList" class="order-card" style="padding:12px;">
+              <div class="muted">No ingredients yet. Add items to the cart.</div>
+            </div>
+            <button type="button" class="btn block" id="viewOrderRecipesBtn" style="margin-top:8px;">🍳 View Recipes for This Order</button>
+
+            <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <button type="button" class="btn block" id="cateringToggleBtn">🎉 Catering Orders</button>
+              <button type="button" class="btn block" id="recipesToggleBtn">🍳 Recipes</button>
+            </div>
+          </div>
+
+          <div id="checkout-catering" hidden>
+            <div class="option" style="margin-bottom:10px;">
+              <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+                <div style="display:flex; gap:10px;">
+                  <button type="button" class="btn fulfill-cat-btn" data-fulfill="pickup" style="flex:1;">Pick Up</button>
+                  <button type="button" class="btn fulfill-cat-btn" data-fulfill="delivery" style="flex:1;">Delivery</button>
+                </div>
+                <div id="zoneButtonsCat" style="display:none; gap:10px; width:100%;"></div>
+              </div>
+            </div>
+
+            <div class="discount">
+              <label>Apply Discount</label>
+              <div id="discountButtonsCat" class="discount-buttons"></div>
+            </div>
+
+            <div class="summary" style="margin-top:12px;">
+              <div class="row"><span>Subtotal</span><strong id="subtotalCat">$0.00</strong></div>
+              <div class="row" id="deliveryRowCat" style="display:none;"><span>Delivery Fee</span><strong id="deliveryFeeCat">$0.00</strong></div>
+              <div class="row"><span>Discount</span><strong id="discountCat">-$0.00</strong></div>
+              <div class="row total"><span>Total</span><strong id="totalCat">$0.00</strong></div>
+            </div>
+
+            <div class="right-actions" style="margin-top:12px;display:flex;gap:10px;">
+              <button class="btn primary block" id="checkoutBtnCat" style="flex:1;">Checkout</button>
+              <button class="btn ghost block" id="resetBtnCat" style="flex:1;">Clear Basket</button>
+            </div>
+
+            <div id="itemTotalsWrapCat">
+              <div class="divider" style="margin-top:16px;"></div>
+              <h3 style="margin:0 0 8px 0">Item Totals (for collecting)</h3>
+              <div id="itemTotalsCat" class="order-card" style="padding:12px;"></div>
+            </div>
+
+            <div class="divider" style="margin-top:16px;"></div>
+
+            <h3 style="margin:0 0 8px 0;">🧺 Ingredients</h3>
+            <div class="small muted" style="margin-bottom:6px;">Ingredients required for above.</div>
+            <div id="ingredientListCat" class="order-card" style="padding:12px;">
+              <div class="muted">No ingredients yet. Add items to the cart.</div>
+            </div>
+            <button type="button" class="btn block" id="viewOrderRecipesCatBtn" style="margin-top:8px;">🍳 View Recipes for This Order</button>
+
+            <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border);">
+              <button type="button" class="btn block" id="backToRegularBtn">← Back to Regular Orders</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel" id="recipesPanel" hidden>
+      <h2>🍳 Recipes</h2>
+      <div class="content">
+        <div class="toolrow" style="margin-bottom:14px;">
+          <input type="text" id="recipeSearch" placeholder="Search recipes or ingredients…" style="padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.9rem;width:240px;">
+          <button type="button" class="btn block" id="backFromRecipesBtn" style="margin-left:auto;max-width:220px;">← Back to Orders</button>
+        </div>
+        <div id="recipeGroups"></div>
+      </div>
+    </section>
+  </div>
+
+  <dialog id="orderRecipesModal">
+    <div class="modal-header">
+      <strong>🍳 Recipes for This Order</strong>
+      <button class="btn" id="closeOrderRecipes" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="order-summary-cols">
+        <div class="recipe-group" style="margin-bottom:0;">
+          <h3>📋 Item Totals (for collecting)</h3>
+          <div id="orderItemTotals" class="order-card" style="padding:12px;"></div>
+        </div>
+        <div class="recipe-group" style="margin-bottom:0;">
+          <h3>🧺 Ingredients</h3>
+          <div id="orderIngredients" class="order-card" style="padding:12px;"></div>
+        </div>
+      </div>
+      <div id="orderRecipeGroups"></div>
+    </div>
+  </dialog>
+
+  <dialog id="comboModal">
+    <div class="modal-header">
+      <strong id="comboTitle">Choose Items</strong>
+      <button class="btn" id="closeCombo" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="comboSteps"></div>
+      <div id="comboContent"></div>
+      <div class="toolrow" style="justify-content:flex-end; margin-top:6px;">
+        <button class="btn" id="comboPrev" style="display:none;">Back</button>
+        <button class="btn primary" id="comboNext">Next</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="iceCreamModal">
+    <div class="modal-header">
+      <strong>🍦 Ice Cream</strong>
+      <button class="btn" id="closeIceCream" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cards" id="iceCream"></div>
+    </div>
+  </dialog>
+
+  <dialog id="extrasModal">
+    <div class="modal-header">
+      <strong>🎁 Extras</strong>
+      <button class="btn" id="closeExtras" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cards" id="extras"></div>
+    </div>
+  </dialog>
+
+  <dialog id="drinksModal">
+    <div class="modal-header">
+      <strong>🍔 A La Carte</strong>
+      <button class="btn" id="closeDrinks" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cards" id="classic"></div>
+    </div>
+  </dialog>
+
+  <dialog id="confirmClearModal">
+    <div class="modal-header">
+      <strong>⚠️ Clear Basket</strong>
+      <button class="btn" id="closeConfirmClear" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>Clear the entire basket? This cannot be undone.</div>
+      <div class="toolrow" style="justify-content:flex-end;gap:10px;">
+        <button class="btn" id="cancelClearBtn">Cancel</button>
+        <button class="btn primary" id="confirmClearBtn" style="background:#e63946;">Clear Basket</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="alertModal">
+    <div class="modal-header">
+      <strong id="alertModalTitle">Notice</strong>
+      <button class="btn" id="closeAlertModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="alertModalMessage"></div>
+      <div class="toolrow" style="justify-content:flex-end;">
+        <button class="btn primary" id="alertModalOkBtn">OK</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="removeMealModal">
+    <div class="modal-header">
+      <strong>⚠️ Remove Meal</strong>
+      <button class="btn" id="closeRemoveMealModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>Remove this meal and everything included with it from your order?</div>
+      <div class="toolrow" style="justify-content:flex-end;gap:10px;">
+        <button class="btn" id="cancelRemoveMealBtn">Cancel</button>
+        <button class="btn primary" id="confirmRemoveMealBtn" style="background:#e63946;">Remove Meal</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="redeemLoyaltyModal">
+    <div class="modal-header">
+      <strong>🎉 Redeem Reward</strong>
+      <button class="btn" id="closeRedeemLoyaltyModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="redeemLoyaltyMessage">Redeem a free meal for this customer? This will use 5 of their stamps.</div>
+      <div class="toolrow" style="justify-content:flex-end;gap:10px;">
+        <button class="btn" id="cancelRedeemLoyaltyBtn">Cancel</button>
+        <button class="btn primary" id="confirmRedeemLoyaltyBtn">Redeem Reward</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="menu-data.js"></script>
+  <script>
+  (async function(){
+    // ---------- Data (MENU comes from menu-data.js, shared with admin.html) ----------
+    // Shared menu state (custom items, price overrides, deletions, shop settings) now
+    // lives in Supabase, so every device sees the same live menu. This is a public,
+    // read-only fetch — only admin.html can write, and only after the Discord Owner
+    // login check.
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // TODO: fill in after creating your Supabase project
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // TODO: fill in with your project's anon public key
+
+    let customMenuItems = [];
+    let menuOverrides = {};
+    let deletedItemIds = [];
+
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_menu_state?id=eq.1&select=*`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      if(!res.ok) throw new Error(`Supabase read failed: ${res.status}`);
+      const rows = await res.json();
+      const row = rows[0] || {};
+
+      customMenuItems = Array.isArray(row.custom_items) ? row.custom_items : [];
+      menuOverrides = (row.overrides && typeof row.overrides === 'object') ? row.overrides : {};
+      deletedItemIds = Array.isArray(row.deleted_ids) ? row.deleted_ids : [];
+
+      if(row.shop_settings && Array.isArray(row.shop_settings.discountTiers)){
+        SHOP_SETTINGS.discountTiers = row.shop_settings.discountTiers;
+      }
+      if(row.shop_settings && Array.isArray(row.shop_settings.deliveryZones)){
+        SHOP_SETTINGS.deliveryZones = row.shop_settings.deliveryZones;
+      }
+
+      // Recipes: admin-added/edited recipes override or extend RECIPE_MAP.
+      if(row.recipe_overrides && typeof row.recipe_overrides === 'object'){
+        Object.entries(row.recipe_overrides).forEach(([itemId, recipe]) => {
+          RECIPE_MAP[itemId] = recipe;
+        });
+      }
+      // Ingredients: admin-added ingredients extend INGREDIENT_PRICES.
+      if(Array.isArray(row.custom_ingredients)){
+        row.custom_ingredients.forEach(ing => {
+          if(ing && ing.name) INGREDIENT_PRICES[ing.name] = Number(ing.price) || 0;
+        });
+      }
+    }catch(err){
+      console.error('Failed to load shared menu state, falling back to defaults:', err);
+      // Fall back to whatever menu-data.js ships with — the calculator still works,
+      // it just won't reflect any admin-panel changes until the connection recovers.
+    }
+
+    // ---------- Manage Menu: custom items merge into MENU ----------
+    customMenuItems.forEach(entry => {
+      if(MENU[entry.category]) MENU[entry.category].push(entry.item);
+    });
+
+    // ---------- Manage Menu: overrides for existing catalog items ----------
+    Object.keys(menuOverrides).forEach(id => {
+      const override = menuOverrides[id];
+      Object.values(MENU).forEach(arr => {
+        if(!Array.isArray(arr)) return;
+        const item = arr.find(i => i.id === id);
+        if(item) Object.assign(item, override);
+      });
+    });
+
+    // ---------- Manage Menu: deleted items/bundles are hidden (not removed from menu-data.js) ----------
+    if(deletedItemIds.length){
+      const deletedSet = new Set(deletedItemIds);
+      Object.keys(MENU).forEach(cat => {
+        if(Array.isArray(MENU[cat])) MENU[cat] = MENU[cat].filter(i => !deletedSet.has(i.id));
+      });
+    }
+
+    // ---------- Manage Menu: shop settings (discount tiers & delivery zone fees) ----------
+    const ZONE_FEES = {};
+    SHOP_SETTINGS.deliveryZones.forEach(z => { ZONE_FEES[z.key] = z.fee; });
+
+    function buildZoneButtonsHTML(className){
+      return SHOP_SETTINGS.deliveryZones.map(z =>
+        `<button type="button" class="btn ${className}" data-zone="${z.key}" style="flex:1;">${z.label} $${z.fee}</button>`
+      ).join('');
+    }
+    function buildDiscountButtonsHTML(className){
+      const tiers = [{ pct:0, label:'0%' }, ...SHOP_SETTINGS.discountTiers];
+      return tiers.map(t =>
+        `<button type="button" class="btn ${className}" data-pct="${t.pct}">${t.label}</button>`
+      ).join('');
+    }
+
+    document.getElementById('zoneButtons').innerHTML = buildZoneButtonsHTML('zone-btn');
+    document.getElementById('zoneButtonsCat').innerHTML = buildZoneButtonsHTML('zone-cat-btn');
+    document.getElementById('discountButtons').innerHTML = buildDiscountButtonsHTML('discount-btn');
+    document.getElementById('discountButtonsCat').innerHTML = buildDiscountButtonsHTML('discount-cat-btn');
+
+    // RECIPE_MAP and INGREDIENT_PRICES now come from menu-data.js (shared with admin.html),
+    // merged below with any admin-added ingredients/recipes from the server.
+
+    // Catering packages don't map directly onto a single RECIPE_MAP entry —
+    // they're made up of a fixed set of regular menu items. This breaks each
+    // package down into { menuItemId: qtyPerPackage } so item totals and
+    // ingredients can be computed the same way as the regular menu.
+    // Empty for now — add entries here once you have real catering packages
+    // to sell (catering packages aren't admin-editable, same as Bean).
+    const CATERING_COMPOSITIONS = {};
+
+    // Empty for now — add an entry like 'some-item-id': 2 if an item is ever
+    // crafted in a multi-yield batch (the RECIPE_MAP amount would represent
+    // one full batch, not one single item).
+    const BATCH_YIELD = {};
+    function batchesFor(id, qty){
+      const yieldPer = BATCH_YIELD[id] || 1;
+      return Math.ceil(qty / yieldPer);
+    }
+
+    // (INGREDIENT_PRICES comes from menu-data.js, merged with server data below.)
+
+    const currency = n => `$${n.toFixed(2)}`;
+
+    // ---------- Non-native alert / confirm dialogs ----------
+    const alertModal = document.getElementById('alertModal');
+    const alertModalMessage = document.getElementById('alertModalMessage');
+    function showAlert(msg, title='Notice'){
+      document.getElementById('alertModalTitle').textContent = title;
+      alertModalMessage.textContent = msg;
+      alertModal.showModal();
+    }
+    document.getElementById('closeAlertModal').addEventListener('click',()=>alertModal.close());
+    document.getElementById('alertModalOkBtn').addEventListener('click',()=>alertModal.close());
+
+    const state = {
+      cart:[], discountPct:0, history:[], fulfillment:'pickup', deliveryZone:'city',
+      mode:'regular',
+      // Catering keeps its own separate cart/discount/fulfillment — entirely independent of the regular order above.
+      cateringCart:[], cateringDiscountPct:0, cateringFulfillment:'pickup', cateringDeliveryZone:'city'
+    };
+
+    // ---------- Local persistence (cart/discount/fulfillment/employee/theme survive a refresh) ----------
+    const STATE_KEY = 'burgershot_state_v1';
+
+    function persistState(){
+      try{
+        localStorage.setItem(STATE_KEY, JSON.stringify({
+          cart: state.cart,
+          discountPct: state.discountPct,
+          fulfillment: state.fulfillment,
+          deliveryZone: state.deliveryZone,
+          cateringCart: state.cateringCart,
+          cateringDiscountPct: state.cateringDiscountPct,
+          cateringFulfillment: state.cateringFulfillment,
+          cateringDeliveryZone: state.cateringDeliveryZone,
+          mode: state.mode,
+          employeeName: document.getElementById('employeeName')?.value || '',
+          theme: document.documentElement.getAttribute('data-theme') || 'dark'
+        }));
+      }catch(e){ console.warn('Persist failed', e); }
+    }
+
+    let savedEmployeeName = '';
+    let savedTheme = 'dark';
+    (function loadPersistedState(){
+      try{
+        const saved = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+        if(Array.isArray(saved.cart)) state.cart = saved.cart;
+        if(typeof saved.discountPct === 'number') state.discountPct = saved.discountPct;
+        if(saved.fulfillment) state.fulfillment = saved.fulfillment;
+        if(saved.deliveryZone) state.deliveryZone = saved.deliveryZone;
+        if(Array.isArray(saved.cateringCart)) state.cateringCart = saved.cateringCart;
+        if(typeof saved.cateringDiscountPct === 'number') state.cateringDiscountPct = saved.cateringDiscountPct;
+        if(saved.cateringFulfillment) state.cateringFulfillment = saved.cateringFulfillment;
+        if(saved.cateringDeliveryZone) state.cateringDeliveryZone = saved.cateringDeliveryZone;
+        if(saved.mode) state.mode = saved.mode;
+        if(saved.employeeName) savedEmployeeName = saved.employeeName;
+        if(saved.theme) savedTheme = saved.theme;
+      }catch(e){ /* ignore malformed/missing saved state */ }
+    })();
+
+    // ---------- Supabase (order history) ----------
+    // SUPABASE_URL and SUPABASE_ANON_KEY are already declared near the top of this
+    // script (used for loading the shared menu state) — reused here as SUPABASE_KEY
+    // so the rest of this section doesn't need renaming.
+    const SUPABASE_KEY = SUPABASE_ANON_KEY;
+
+    // The artifact viewer relays fetch() via postMessage/structured-clone, which can't
+    // clone a Headers instance. supabase-js builds one internally, so we hand it a
+    // custom fetch that flattens headers to a plain object first.
+    function artifactSafeFetch(url, options={}){
+      const opts = { ...options };
+      if(opts.headers instanceof Headers){
+        opts.headers = Object.fromEntries(opts.headers.entries());
+      }
+      return window.fetch(url, opts);
+    }
+
+    let supabaseClient = null;
+    let supabaseLoadPromise = null;
+    function loadSupabaseClient(){
+      if(supabaseLoadPromise) return supabaseLoadPromise;
+      supabaseLoadPromise = new Promise((resolve)=>{
+        if(window.supabase){
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { global: { fetch: artifactSafeFetch } });
+          resolve(supabaseClient);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        script.onload = () => {
+          try{
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { global: { fetch: artifactSafeFetch } });
+            resolve(supabaseClient);
+          }catch(e){
+            console.warn('Supabase client init failed', e);
+            resolve(null);
+          }
+        };
+        script.onerror = () => {
+          console.warn('Failed to load Supabase SDK from CDN');
+          resolve(null);
+        };
+        document.head.appendChild(script);
+      });
+      return supabaseLoadPromise;
+    }
+
+    async function pushHistoryToStorage(entry){
+      const client = await loadSupabaseClient();
+      if(!client) return;
+      const { error } = await client.from('Burgershot').insert({
+        date: new Date(entry.id).toISOString(),
+        employee: entry.employee || null,
+        items: entry.items,
+        total: entry.total,
+        discount: entry.discountPct
+      });
+      if(error) console.warn('Supabase push failed', error);
+    }
+
+    async function fetchHistoryFromStorage(){
+      const client = await loadSupabaseClient();
+      if(!client) return null;
+      const { data, error } = await client.from('Burgershot').select('*').order('date', { ascending:false });
+      if(error){ console.warn('Supabase fetch failed', error); return null; }
+      // Postgres numeric/decimal columns come back as strings over PostgREST
+      // (to avoid float precision loss) — coerce them back to JS numbers.
+      return (data||[]).map(r=>({
+        id: new Date(r.date).getTime(),
+        employee: r.employee || null,
+        items: (r.items || []).map(i=>({ ...i, unit:Number(i.unit)||0, qty:Number(i.qty)||0, lineTotal:Number(i.lineTotal)||0 })),
+        total: Number(r.total)||0,
+        discountPct: Number(r.discount)||0
+      }));
+    }
+
+    async function refreshHistoryFromStorage(){
+      const remote = await fetchHistoryFromStorage();
+      if(remote){ state.history = remote; renderHistory(); }
+    }
+
+    // ---------- Helpers: lookups ----------
+    function findMenuItem(id){
+      const pools = [MENU.classic,MENU.specialty,MENU.deals,MENU.packs,MENU.bundles,MENU.extras,MENU.iceCream];
+      for(const pool of pools){ const f = pool.find(x=>x.id===id); if(f) return f; }
+      return null;
+    }
+
+    function getMealDrinkPool(){
+      return MENU.classic.filter(x=>['bev-bean','bev-capp','bev-esp','bev-iced','bev-choc','bev-matcha','ex-lemon'].includes(x.id));
+    }
+
+    function getCakePool(){ return MENU.extras.filter(x=>x.id.startsWith('ex-cake-')); }
+
+    // ---------- Menu card rendering ----------
+    function cardHTML(item, opts={}){
+      const needsCombo = (Array.isArray(item.components) && item.components.length>0) || item.id==='cat-party-pack';
+      const showQty = opts.showQty!==false;
+      const titleHTML = item.icon
+        ? `<div style="display:flex;align-items:center;gap:8px;">
+             <span style="width:28px;height:28px;flex:none;border-radius:50%;background:var(--chip);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;">${item.icon}</span>
+             <h3 style="margin:0;">${item.name}</h3>
+           </div>`
+        : `<h3>${item.name}</h3>`;
+      return `
+        <article class="card">
+          ${titleHTML}
+          ${item.description?`<div class="muted" style="font-size:.85rem;">${item.description}</div>`:''}
+          <div class="toolrow" style="justify-content:space-between;">
+            <span class="price">${currency(item.price)}</span>
+            ${showQty?`<div class="qty">
+              <button aria-label="decrease">−</button>
+              <output>1</output>
+              <button aria-label="increase">+</button>
+            </div>`:''}
+          </div>
+          ${needsCombo?`<button class="btn" data-wizard="${item.id}">Choose &amp; Add</button>`:`<button class="btn" data-add="${item.id}">Add</button>`}
+        </article>`;
+    }
+
+    function renderCards(){
+      const classic = document.getElementById('classic');
+      const mealBundles = document.getElementById('mealBundles');
+      const iceCream = document.getElementById('iceCream');
+      const extras  = document.getElementById('extras');
+
+      const make = arr => arr.map(cardHTML).join('');
+      classic.innerHTML = make(MENU.classic);
+      mealBundles.innerHTML = MENU.bundles.map(i=>cardHTML(i,{showQty:false})).join('');
+      iceCream.innerHTML = make(MENU.iceCream);
+      extras.innerHTML  = make(MENU.extras);
+
+      const allItems = [...MENU.classic,...MENU.bundles,...MENU.extras,...MENU.iceCream,...MENU.deals];
+
+      document.querySelectorAll('.cards .card').forEach(card=>{
+        let count=1;
+        const out=card.querySelector('output');
+        card.querySelector('button[aria-label="decrease"]')?.addEventListener('click',()=>{count=Math.max(1,count-1);out.value=count;});
+        card.querySelector('button[aria-label="increase"]')?.addEventListener('click',()=>{count++;out.value=count;});
+
+        const wizId = card.querySelector('[data-wizard]')?.getAttribute('data-wizard');
+        if(wizId){
+          const item = allItems.find(i=>i.id===wizId);
+          card.querySelector('[data-wizard]').addEventListener('click',()=>openComboWizard(item,count));
+          return;
+        }
+
+        const addId = card.querySelector('[data-add]')?.getAttribute('data-add');
+        if(addId){
+          const item = allItems.find(i=>i.id===addId);
+          card.querySelector('[data-add]').addEventListener('click',()=>{
+            addToCart({ id:item.id, name:item.name, unitPrice:item.price, qty:count, type:item.type });
+          });
+        }
+      });
+    }
+
+    // ---------- Cart ----------
+    function renderCart(){
+      const cart = document.getElementById('cart');
+      if(!state.cart.length){
+        cart.innerHTML = `<div class="cart-item muted">Your order is empty. Add a combo or item to get started.</div>`;
+        return;
+      }
+
+      const itemRow = (l,idx)=>`
+        <div class="cart-item${l.groupId?' included':''}">
+          <div>
+            <strong>${l.name}</strong>
+          </div>
+          ${l.groupId && l.noMerge ? `
+            <div class="qty"><span class="muted">×${l.qty}</span></div>
+          ` : l.groupId ? `
+            <div class="qty">
+              <button data-dec-meal="${idx}">−</button>
+              <output>${l.qty}</output>
+              <button data-inc-meal="${idx}">+</button>
+            </div>
+          ` : `
+            <div class="qty">
+              <button data-dec="${idx}">−</button>
+              <output>${l.qty}</output>
+              <button data-inc="${idx}">+</button>
+            </div>
+          `}
+          <div><strong>${currency(l.unitPrice*l.qty)}</strong></div>
+        </div>`;
+
+      let html='';
+      let i=0;
+      while(i<state.cart.length){
+        const l=state.cart[i];
+        if(l.groupId){
+          let j=i;
+          let groupHtml='';
+          while(j<state.cart.length && state.cart[j].groupId===l.groupId){
+            groupHtml += itemRow(state.cart[j],j);
+            j++;
+          }
+          html += `<div class="meal-group">
+            <button class="remove-meal-btn" data-remove-group="${l.groupId}" title="Remove meal" aria-label="Remove meal">✕</button>
+            ${groupHtml}
+          </div>`;
+          i=j;
+        } else {
+          html += itemRow(l,i);
+          i++;
+        }
+      }
+      cart.innerHTML = html;
+
+      cart.querySelectorAll('[data-remove-group]').forEach(b=>b.addEventListener('click',()=>{
+        openRemoveMealConfirm(b.getAttribute('data-remove-group'));
+      }));
+
+      cart.querySelectorAll('[data-inc-meal]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.getAttribute('data-inc-meal');
+        const line = state.cart[i];
+        rescaleMealGroup(line.groupId, line.qty+1);
+        renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+      }));
+      cart.querySelectorAll('[data-dec-meal]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.getAttribute('data-dec-meal');
+        const line = state.cart[i];
+        const newQty = line.qty-1;
+        if(newQty<=0){
+          state.cart = state.cart.filter(l=>l.groupId!==line.groupId);
+        }else{
+          rescaleMealGroup(line.groupId, newQty);
+        }
+        renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+      }));
+
+      cart.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.getAttribute('data-inc'); state.cart[i].qty++; renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+      }));
+      cart.querySelectorAll('[data-dec]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.getAttribute('data-dec'); state.cart[i].qty--; if(state.cart[i].qty<=0) state.cart.splice(i,1); renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+      }));
+    }
+
+    // Scales every included item in a meal group proportionally when the meal's own
+    // quantity is changed directly from the cart (not through the wizard).
+    function rescaleMealGroup(groupId, newBundleQty){
+      const groupLines = state.cart.filter(l => l.groupId === groupId);
+      const bundleLine = groupLines.find(l => !l.noMerge);
+      if(!bundleLine || newBundleQty <= 0) return;
+
+      const oldBundleQty = bundleLine.qty;
+      const ratio = newBundleQty / oldBundleQty;
+
+      groupLines.forEach(l => {
+        if(l.noMerge){
+          l.qty = Math.max(1, Math.round(l.qty * ratio));
+        }
+      });
+
+      bundleLine.qty = newBundleQty;
+    }
+
+    function addToCart(line){
+      if(line.type==='bundle' || line.noMerge){
+        state.cart.push(line);
+        renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+        return;
+      }
+      const key = `${line.id||line.name}|${line.unitPrice}|${line.type||''}|${(line.meta||'')}`;
+      const found = state.cart.find(l =>
+        `${l.id||l.name}|${l.unitPrice}|${l.type||''}|${(l.meta||'')}`===key &&
+        JSON.stringify(l.drinks||{})===JSON.stringify(line.drinks||{}) &&
+        JSON.stringify(l.cakes||{})===JSON.stringify(line.cakes||{})
+      );
+      if(found) found.qty += line.qty; else state.cart.push(line);
+      renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+    }
+
+    // ---------- Catering: menu, cart, fulfillment, totals, discount, checkout ----------
+    // This is a fully separate ordering flow from the regular menu/cart/checkout above —
+    // its own items, its own cart, its own discount/fulfillment, its own checkout button.
+    // It only shares the employee name field and the Order History list.
+    function renderCateringCards(){
+      const wrap = document.getElementById('cateringPackages');
+      if(!MENU.cateringPackages.length){
+        wrap.innerHTML = `<div class="muted">No catering packages yet. Tell Claude what packages, bundle pricing, or bulk deals to add and they'll show up here as cards — completely separate from the regular menu above.</div>`;
+        return;
+      }
+      wrap.innerHTML = MENU.cateringPackages.map(i=>cardHTML(i)).join('');
+      wrap.querySelectorAll('.card').forEach(card=>{
+        let count=1;
+        const out=card.querySelector('output');
+        card.querySelector('button[aria-label="decrease"]')?.addEventListener('click',()=>{count=Math.max(1,count-1);out.value=count;});
+        card.querySelector('button[aria-label="increase"]')?.addEventListener('click',()=>{count++;out.value=count;});
+
+        const wizId = card.querySelector('[data-wizard]')?.getAttribute('data-wizard');
+        if(wizId){
+          const item = MENU.cateringPackages.find(i=>i.id===wizId);
+          card.querySelector('[data-wizard]').addEventListener('click',()=>openCateringComboWizard(item,count));
+          return;
+        }
+
+        const addId = card.querySelector('[data-add]')?.getAttribute('data-add');
+        if(addId){
+          const item = MENU.cateringPackages.find(i=>i.id===addId);
+          card.querySelector('[data-add]').addEventListener('click',()=>{
+            addCateringPackageToCart(item, count);
+          });
+        }
+      });
+    }
+
+    // Adds a catering package with a fixed (non-user-chosen) composition as a
+    // parent line plus $0 "included" sub-lines, grouped via groupId — same
+    // pattern the regular menu uses for bundles like the Hayward Special.
+    function addCateringPackageToCart(item, qty){
+      const comp = CATERING_COMPOSITIONS[item.id];
+      if(!comp){
+        addToCateringCart({ id:item.id, name:item.name, unitPrice:item.price, qty, type:item.type||'catering' });
+        return;
+      }
+      const q = qty||1;
+      const subItems = Object.entries(comp).map(([compId,compQty])=>{
+        const compItem = findMenuItem(compId);
+        return { id:compId, name:`${compItem?compItem.name:compId}`, perQty:compQty, type:compItem?.type||'extra' };
+      });
+      addOrStackCateringPackage(item, q, subItems);
+    }
+
+    // Stacks onto an existing package group in the cart if one with the exact
+    // same composition already exists (same package id + same sub-item make-up),
+    // otherwise creates a brand-new group.
+    function addOrStackCateringPackage(item, q, subItems){
+      const sig = JSON.stringify(subItems.map(s=>({id:s.id,perQty:s.perQty})).sort((a,b)=>a.id.localeCompare(b.id)));
+
+      const parentIdxs = [];
+      state.cateringCart.forEach((l,idx)=>{ if(l.type==='bundle' && l.id===item.id) parentIdxs.push(idx); });
+
+      for(const pIdx of parentIdxs){
+        const parent = state.cateringCart[pIdx];
+        const groupLines = state.cateringCart.filter(l=>l.groupId===parent.groupId && l!==parent);
+        const groupSig = JSON.stringify(groupLines.map(l=>({id:l.id, perQty:l.qty/parent.qty})).sort((a,b)=>a.id.localeCompare(b.id)));
+        if(groupSig===sig){
+          parent.qty += q;
+          groupLines.forEach(l=>{
+            const match = subItems.find(s=>s.id===l.id);
+            if(match) l.qty += match.perQty*q;
+          });
+          renderCateringCart(); renderCateringTotals(); renderCateringItemTotals(); renderCateringIngredients();
+          return;
+        }
+      }
+
+      const groupId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      addToCateringCart({ id:item.id, name:item.name, unitPrice:item.price, qty:q, type:'bundle', groupId });
+      subItems.forEach(s=>{
+        addToCateringCart({ id:s.id, name:s.name, unitPrice:0, qty:s.perQty*q, type:s.type, meta:item.name, noMerge:true, groupId });
+      });
+    }
+
+    function renderCateringCart(){
+      const cart = document.getElementById('cateringCart');
+      if(!state.cateringCart.length){
+        cart.innerHTML = `<div class="cart-item muted">Your catering order is empty. Add a package to get started.</div>`;
+        return;
+      }
+
+      const itemRow = (l,idx)=>`
+        <div class="cart-item${l.groupId?' included':''}">
+          <div>
+            <div><strong${l.type==='bundle'?' style="font-size:1.15rem"':''}>${l.name}${l.type==='bundle'?` <span class="small" style="font-weight:600;">x${l.qty}</span>`:''}</strong></div>
+          </div>
+          <div class="qty${l.groupId?' static':''}">
+            ${l.groupId
+              ? (l.type==='bundle' ? `<button data-remove-group="${l.groupId}" class="btn" title="Remove package">Remove</button>` : `<span>x${l.qty}</span>`)
+              : `<button data-dec-cat="${idx}">−</button><output>${l.qty}</output><button data-inc-cat="${idx}">+</button>`}
+          </div>
+          <div><strong>${currency(l.unitPrice*l.qty)}</strong></div>
+        </div>`;
+
+      let html='';
+      let i=0;
+      while(i<state.cateringCart.length){
+        const l=state.cateringCart[i];
+        if(l.groupId){
+          let j=i;
+          let groupHtml='';
+          while(j<state.cateringCart.length && state.cateringCart[j].groupId===l.groupId){
+            groupHtml += itemRow(state.cateringCart[j],j);
+            j++;
+          }
+          html += `<div class="meal-group">${groupHtml}</div>`;
+          i=j;
+        } else {
+          html += itemRow(l,i);
+          i++;
+        }
+      }
+      cart.innerHTML = html;
+
+      cart.querySelectorAll('[data-inc-cat]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.getAttribute('data-inc-cat'); state.cateringCart[i].qty++; renderCateringCart(); renderCateringTotals(); renderCateringItemTotals(); renderCateringIngredients();
+      }));
+      cart.querySelectorAll('[data-dec-cat]').forEach(b=>b.addEventListener('click',()=>{
+        const i=+b.getAttribute('data-dec-cat'); state.cateringCart[i].qty--; if(state.cateringCart[i].qty<=0) state.cateringCart.splice(i,1); renderCateringCart(); renderCateringTotals(); renderCateringItemTotals(); renderCateringIngredients();
+      }));
+      cart.querySelectorAll('[data-remove-group]').forEach(b=>b.addEventListener('click',()=>{
+        const gid = b.getAttribute('data-remove-group');
+        state.cateringCart = state.cateringCart.filter(l=>l.groupId!==gid);
+        renderCateringCart(); renderCateringTotals(); renderCateringItemTotals(); renderCateringIngredients();
+      }));
+    }
+
+    function addToCateringCart(line){
+      if(line.type==='bundle' || line.noMerge){
+        state.cateringCart.push(line);
+        renderCateringCart(); renderCateringTotals(); renderCateringItemTotals(); renderCateringIngredients();
+        return;
+      }
+      const key = `${line.id||line.name}|${line.unitPrice}|${line.type||''}|${(line.meta||'')}`;
+      const found = state.cateringCart.find(l =>
+        `${l.id||l.name}|${l.unitPrice}|${l.type||''}|${(l.meta||'')}`===key
+      );
+      if(found) found.qty += line.qty; else state.cateringCart.push(line);
+      renderCateringCart(); renderCateringTotals(); renderCateringItemTotals(); renderCateringIngredients();
+    }
+
+    function renderCateringFulfillment(){
+      document.querySelectorAll('.fulfill-cat-btn').forEach(b=> b.setAttribute('aria-pressed', String(b.dataset.fulfill===state.cateringFulfillment)));
+      document.getElementById('zoneButtonsCat').style.display = state.cateringFulfillment==='delivery' ? 'flex' : 'none';
+      document.querySelectorAll('.zone-cat-btn').forEach(b=> b.setAttribute('aria-pressed', String(b.dataset.zone===state.cateringDeliveryZone)));
+    }
+    document.querySelectorAll('.fulfill-cat-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.cateringFulfillment=btn.dataset.fulfill; renderCateringFulfillment(); renderCateringTotals(); });
+    });
+    document.querySelectorAll('.zone-cat-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.cateringDeliveryZone=btn.dataset.zone; renderCateringFulfillment(); renderCateringTotals(); });
+    });
+
+    function renderCateringTotals(){
+      const subtotal = state.cateringCart.reduce((s,l)=>s + l.unitPrice*l.qty, 0);
+      const manual = +(discountableSubtotal(state.cateringCart) * (state.cateringDiscountPct/100)).toFixed(2);
+      const deliveryFee = state.cateringFulfillment==='delivery' ? (ZONE_FEES[state.cateringDeliveryZone]||0) : 0;
+      const total = subtotal + deliveryFee - manual;
+
+      document.getElementById('subtotalCat').textContent = currency(subtotal);
+      document.getElementById('discountCat').textContent = `-${currency(manual)}`;
+      document.getElementById('totalCat').textContent = currency(total);
+      const row = document.getElementById('deliveryRowCat');
+      if(deliveryFee>0){ row.style.display='flex'; document.getElementById('deliveryFeeCat').textContent = currency(deliveryFee); }
+      else { row.style.display='none'; document.getElementById('deliveryFeeCat').textContent = currency(0); }
+      persistState();
+    }
+
+    const discountCatBtns = document.querySelectorAll('.discount-cat-btn');
+    function renderCateringDiscount(){
+      discountCatBtns.forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.pct === state.cateringDiscountPct)));
+    }
+    discountCatBtns.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        state.cateringDiscountPct = +btn.dataset.pct;
+        renderCateringTotals(); renderCateringDiscount();
+      });
+    });
+
+    function renderCateringAll(){ renderCateringCards(); renderCateringCart(); renderCateringFulfillment(); renderCateringTotals(); renderCateringDiscount(); renderCateringItemTotals(); renderCateringIngredients(); }
+
+    function checkoutCatering(){
+      if(!state.cateringCart.length){ showAlert('Your catering order is empty.'); return; }
+      const employeeName = (document.getElementById('employeeName')?.value || '').trim();
+      if(!employeeName){
+        showAlert('Please enter an employee name before checking out.');
+        document.getElementById('employeeName')?.focus();
+        return;
+      }
+      const subtotal=state.cateringCart.reduce((s,l)=>s+l.unitPrice*l.qty,0);
+      const manual=+(discountableSubtotal(state.cateringCart)*(state.cateringDiscountPct/100)).toFixed(2);
+      const fee=state.cateringFulfillment==='delivery'?(ZONE_FEES[state.cateringDeliveryZone]||0):0;
+      const total=+(subtotal+fee-manual).toFixed(2);
+      const entry={
+        id:Date.now(),
+        employee: `${employeeName} (Catering)`,
+        items:state.cateringCart.map(l=>({ id:l.id||null,name:l.name,qty:l.qty,unit:l.unitPrice,meta:l.meta||null,type:l.type||'catering',groupId:l.groupId||null,lineTotal:+(l.unitPrice*l.qty).toFixed(2) })),
+        discountPct:state.cateringDiscountPct, subtotal:+subtotal.toFixed(2), deliveryFee:fee, manualDiscount:manual, total
+      };
+      state.history.unshift(entry);
+      pushHistoryToStorage(entry);
+      state.cateringCart=[]; state.cateringDiscountPct=0; renderCateringAll();
+      showAlert(`Catering Order Total ${currency(total)} has been checked out.`, 'Order Completed');
+    }
+
+    let pendingClearTarget = 'regular';
+    function resetCateringAll(){
+      if(!state.cateringCart.length) return;
+      pendingClearTarget = 'catering';
+      document.getElementById('confirmClearModal').showModal();
+    }
+
+    document.getElementById('checkoutBtnCat').addEventListener('click',checkoutCatering);
+    document.getElementById('resetBtnCat').addEventListener('click',resetCateringAll);
+
+    // ---------- Mode switch: Regular <-> Catering (swaps Menu, Orders, and Checkout panels) ----------
+    function switchMode(mode){
+      state.mode = mode;
+      document.getElementById('menu-regular').hidden = mode!=='regular';
+      document.getElementById('menu-catering').hidden = mode!=='catering';
+      document.getElementById('checkout-regular').hidden = mode!=='regular';
+      document.getElementById('checkout-catering').hidden = mode!=='catering';
+      document.getElementById('menuPanelTitle').textContent = mode==='catering' ? '🎉 Catering Menu' : 'Menu';
+      document.getElementById('checkoutPanelTitle').textContent = mode==='catering' ? '🎉 Catering Checkout' : 'Checkout';
+
+      // Only swap which cart is showing if History isn't currently open.
+      if(document.getElementById('tab-history').hidden){
+        document.getElementById('orders-regular').hidden = mode!=='regular';
+        document.getElementById('orders-catering').hidden = mode!=='catering';
+      }
+
+      if(mode==='catering') renderCateringAll(); else renderAll();
+    }
+    document.getElementById('cateringToggleBtn').addEventListener('click',()=>switchMode('catering'));
+    document.getElementById('backToRegularBtn').addEventListener('click',()=>switchMode('regular'));
+
+    // ---------- Recipes tab: full-width reference panel, swaps in over the grid ----------
+    function buildRecipeGroupsHTML(filter='', idFilter=null){
+      const q = filter.trim().toLowerCase();
+      const groups = [
+        { title:'☕ Drinks', pool: MENU.classic },
+        { title:'🍦 Ice Cream', pool: MENU.iceCream },
+        { title:'🎁 Extras', pool: MENU.extras },
+      ];
+      let html = '';
+      groups.forEach(g=>{
+        const items = g.pool.filter(it=>{
+          if(!RECIPE_MAP[it.id]) return false;
+          if(idFilter && !idFilter.has(it.id)) return false;
+          if(!q) return true;
+          if(it.name.toLowerCase().includes(q)) return true;
+          return Object.keys(RECIPE_MAP[it.id]).some(n=>n.toLowerCase().includes(q));
+        });
+        if(!items.length) return;
+        html += `<div class="recipe-group"><h3>${g.title}</h3><div class="recipe-cards">`;
+        items.forEach(it=>{
+          const recipe = RECIPE_MAP[it.id];
+          const yieldPer = BATCH_YIELD[it.id];
+          const yieldNote = yieldPer ? ` <span class="small muted">(craft makes ${yieldPer})</span>` : '';
+          const rows = Object.entries(recipe).map(([n,c])=>`<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong></div></div>`).join('');
+          html += `<div class="recipe-card"><h4>${it.name}${yieldNote}</h4>${rows}</div>`;
+        });
+        html += `</div></div>`;
+      });
+      return html;
+    }
+    function renderRecipesPanel(filter=''){
+      const wrap = document.getElementById('recipeGroups');
+      if(!wrap) return;
+      wrap.innerHTML = buildRecipeGroupsHTML(filter) || '<div class="muted">No recipes match your search.</div>';
+    }
+    function showRecipes(){
+      document.querySelector('.grid').hidden = true;
+      document.getElementById('recipesPanel').hidden = false;
+      const search = document.getElementById('recipeSearch');
+      search.value = '';
+      renderRecipesPanel();
+      search.focus();
+    }
+    function hideRecipes(){
+      document.getElementById('recipesPanel').hidden = true;
+      document.querySelector('.grid').hidden = false;
+    }
+    document.getElementById('recipesToggleBtn').addEventListener('click', showRecipes);
+    document.getElementById('backFromRecipesBtn').addEventListener('click', hideRecipes);
+    document.getElementById('recipeSearch').addEventListener('input', e=>renderRecipesPanel(e.target.value));
+
+    // ---------- Recipes for current order (popup) ----------
+    function getRecipeIdsForCart(cart){
+      const ids = new Set();
+      cart.forEach(line=>{
+        if(RECIPE_MAP[line.id]) ids.add(line.id);
+        if(line.drinks) Object.keys(line.drinks).forEach(id=>{ if(RECIPE_MAP[id]) ids.add(id); });
+        if(line.cakes) Object.keys(line.cakes).forEach(id=>{ if(RECIPE_MAP[id]) ids.add(id); });
+        if(line.waffles) Object.keys(line.waffles).forEach(id=>{ if(RECIPE_MAP[id]) ids.add(id); });
+      });
+      return ids;
+    }
+    function buildItemTotalsHTML(cart){
+      const tally={};
+      cart.forEach(l=>{
+        if(l.type==='bundle') return;
+        const name = l.name.replace(/\s*\(Included\)/,'').replace(/\s*\(Hayward\)/,'');
+        tally[name] = (tally[name]||0) + l.qty;
+      });
+      const entries = Object.entries(tally).sort((a,b)=>a[0].localeCompare(b[0]));
+      if(!entries.length) return '<div class="muted">No items yet.</div>';
+      return entries.map(([n,c])=>`<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong></div></div>`).join('');
+    }
+    function buildIngredientsHTML(cart){
+      const entries=Object.entries(aggregateIngredients(cart)).sort((a,b)=>b[1]-a[1]);
+      if(!entries.length) return '<div class="muted">No ingredients yet.</div>';
+      return entries.map(([n,c])=>{
+        const price = INGREDIENT_PRICES[n];
+        const costHTML = price!=null ? ` <span class="small">(${currency(price*c)})</span>` : '';
+        return `<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong>${costHTML}</div></div>`;
+      }).join('');
+    }
+    const orderRecipesModal = document.getElementById('orderRecipesModal');
+    function showRecipesForOrder(cart){
+      const wrap = document.getElementById('orderRecipeGroups');
+      const ids = getRecipeIdsForCart(cart);
+      wrap.innerHTML = ids.size
+        ? buildRecipeGroupsHTML('', ids)
+        : '<div class="muted">No items in this order have a recipe yet. Add items to the cart.</div>';
+      document.getElementById('orderItemTotals').innerHTML = buildItemTotalsHTML(cart);
+      document.getElementById('orderIngredients').innerHTML = buildIngredientsHTML(cart);
+      orderRecipesModal.showModal();
+    }
+    document.getElementById('viewOrderRecipesBtn').addEventListener('click', ()=>showRecipesForOrder(state.cart));
+    document.getElementById('viewOrderRecipesCatBtn').addEventListener('click', ()=>showRecipesForOrder(state.cateringCart));
+    document.getElementById('closeOrderRecipes').addEventListener('click', ()=>orderRecipesModal.close());
+
+    // ---------- Fulfillment (pickup / delivery) ----------
+    function renderFulfillment(){
+      document.querySelectorAll('.fulfill-btn').forEach(b=> b.setAttribute('aria-pressed', String(b.dataset.fulfill===state.fulfillment)));
+      document.getElementById('zoneButtons').style.display = state.fulfillment==='delivery' ? 'flex' : 'none';
+      document.querySelectorAll('.zone-btn').forEach(b=> b.setAttribute('aria-pressed', String(b.dataset.zone===state.deliveryZone)));
+    }
+    document.querySelectorAll('.fulfill-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.fulfillment=btn.dataset.fulfill; renderFulfillment(); renderTotals(); });
+    });
+    document.querySelectorAll('.zone-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.deliveryZone=btn.dataset.zone; renderFulfillment(); renderTotals(); });
+    });
+
+    // ---------- Totals & manual discount ----------
+    function discountableSubtotal(cart){
+      // On-The-Go Bag is excluded from manual discounts.
+      return cart.reduce((s,l)=> l.id==='og-bag' ? s : s + l.unitPrice*l.qty, 0);
+    }
+
+    function renderTotals(){
+      const subtotal = state.cart.reduce((s,l)=>s + l.unitPrice*l.qty, 0);
+      const manual = +(discountableSubtotal(state.cart) * (state.discountPct/100)).toFixed(2);
+      const deliveryFee = state.fulfillment==='delivery' ? (ZONE_FEES[state.deliveryZone]||0) : 0;
+      const total = subtotal + deliveryFee - manual;
+
+      document.getElementById('subtotal').textContent = currency(subtotal);
+      document.getElementById('discount').textContent = `-${currency(manual)}`;
+      document.getElementById('total').textContent = currency(total);
+      const row = document.getElementById('deliveryRow');
+      if(deliveryFee>0){ row.style.display='flex'; document.getElementById('deliveryFee').textContent = currency(deliveryFee); }
+      else { row.style.display='none'; document.getElementById('deliveryFee').textContent = currency(0); }
+      persistState();
+    }
+
+    const discountBtns = document.querySelectorAll('.discount-btn');
+    function renderDiscount(){
+      discountBtns.forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.pct === state.discountPct)));
+    }
+    discountBtns.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        state.discountPct = +btn.dataset.pct;
+        renderTotals(); renderDiscount();
+      });
+    });
+
+    // ---------- Order history (past checkouts) ----------
+    let historyView = 'list';
+
+    function historyItemsHTML(items){
+      // Group items that share a groupId (bundle + its included components) so the
+      // included lines nest under the bundle instead of repeating its name/meta.
+      const seen = new Set();
+      let html = '';
+      items.forEach((i,idx)=>{
+        if(seen.has(idx)) return;
+        if(i.groupId){
+          const group = items.filter(x=>x.groupId===i.groupId);
+          group.forEach(g=>seen.add(items.indexOf(g)));
+          const main = group.find(g=>g.unit>0) || group[0];
+          const included = group.filter(g=>g!==main);
+          html += `
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;gap:10px;">
+                <span>${main.qty}× ${main.name}</span>
+                <span style="white-space:nowrap;">${currency(main.lineTotal)}</span>
+              </div>
+              ${included.length ? `
+                <div style="margin:6px 0 0 10px;padding-left:10px;border-left:2px solid var(--border);display:flex;flex-direction:column;gap:3px;">
+                  ${included.map(g=>`<div class="small" style="opacity:.8;">${g.qty}× ${g.name.replace(/\s*\(Included\)/,'').replace(/\s*\(Hayward\)/,'')}</div>`).join('')}
+                </div>` : ''}
+            </div>`;
+        } else {
+          html += `
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;">
+              <span>${i.qty}× ${i.name}${i.meta?` <span class="small">(${i.meta})</span>`:''}</span>
+              <span style="white-space:nowrap;">${currency(i.lineTotal)}</span>
+            </div>`;
+        }
+      });
+      return html;
+    }
+
+    function historyEntryHTML(h){
+      return `
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div>
+              <div><strong>${new Date(h.id).toLocaleString()}</strong></div>
+              ${h.employee?`<div style="font-size:1.05rem;font-weight:700;color:var(--accent);margin:2px 0;">👤 ${h.employee}</div>`:''}
+              <div class="small">${h.items.length} item(s) • Discount ${h.discountPct}%</div>
+            </div>
+            <div><strong>${currency(h.total)}</strong></div>
+          </div>
+          <details class="small" style="margin-top:6px;">
+            <summary>View items</summary>
+            <div style="margin-top:6px;display:flex;flex-direction:column;border-top:1px solid var(--border);">
+              ${historyItemsHTML(h.items)}
+            </div>
+          </details>
+        </article>`;
+    }
+
+    function aggregateByEmployee(){
+      const groups = {};
+      state.history.forEach(h=>{
+        const key = h.employee || 'Unassigned';
+        if(!groups[key]) groups[key] = { name:key, orders:[], count:0, total:0 };
+        groups[key].orders.push(h);
+        groups[key].count++;
+        groups[key].total += h.total;
+      });
+      return Object.values(groups).sort((a,b)=> b.total-a.total);
+    }
+
+    function renderHistory(){
+      const list=document.getElementById('historyList');
+      if(!state.history.length){ list.innerHTML='<div class="muted">No past orders yet. Checkout to save one.</div>'; return; }
+
+      if(historyView==='employees'){
+        const groups = aggregateByEmployee();
+        list.innerHTML = groups.map((g,gi)=>`
+          <article class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div><strong>${g.name}</strong></div>
+              <div class="small">${g.count} order(s) • ${currency(g.total)} total</div>
+            </div>
+            <details class="small" style="margin-top:6px;">
+              <summary>View orders</summary>
+              <div style="margin-top:8px; display:flex; flex-direction:column; gap:10px;">
+                ${g.orders.map(historyEntryHTML).join('')}
+              </div>
+            </details>
+          </article>
+        `).join('');
+        return;
+      }
+
+      list.innerHTML = state.history.map(historyEntryHTML).join('');
+    }
+
+    const historyViewListBtn = document.getElementById('historyViewList');
+    const historyViewEmployeesBtn = document.getElementById('historyViewEmployees');
+    function setHistoryView(v){
+      historyView = v;
+      historyViewListBtn.setAttribute('aria-pressed', String(v==='list'));
+      historyViewEmployeesBtn.setAttribute('aria-pressed', String(v==='employees'));
+      renderHistory();
+    }
+    historyViewListBtn.addEventListener('click',()=>setHistoryView('list'));
+    historyViewEmployeesBtn.addEventListener('click',()=>setHistoryView('employees'));
+
+
+    // ---------- Tabs (Order view / History) within the Orders panel ----------
+    const historyToggleBtn = document.getElementById('historyToggleBtn');
+    function selectTab(which){
+      const showHistory = which==='history';
+      document.getElementById('tab-history').hidden = !showHistory;
+      // Whichever cart matches the current mode (regular/catering) shows when not viewing history.
+      document.getElementById('orders-regular').hidden = showHistory || state.mode!=='regular';
+      document.getElementById('orders-catering').hidden = showHistory || state.mode!=='catering';
+
+      if(showHistory) { renderHistory(); refreshHistoryFromStorage(); }
+
+      historyToggleBtn.textContent = showHistory ? '← Back to Orders' : '📜 View History';
+      historyToggleBtn.setAttribute('data-tab', showHistory ? 'summary' : 'history');
+    }
+    document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>selectTab(b.getAttribute('data-tab'))));
+
+    // ---------- Combo wizard modal (meal drink picks & Hayward cake picks) ----------
+    const comboModal=document.getElementById('comboModal');
+    const comboTitle=document.getElementById('comboTitle');
+    const comboSteps=document.getElementById('comboSteps');
+    const comboContent=document.getElementById('comboContent');
+    const comboPrev=document.getElementById('comboPrev');
+    const comboNext=document.getElementById('comboNext');
+    document.getElementById('closeCombo').addEventListener('click',()=>comboModal.close());
+
+    function poolForComponent(comp){
+      const categoryPool = MENU[comp.category] || [];
+      if(Array.isArray(comp.poolIds) && comp.poolIds.length){
+        return categoryPool.filter(x => comp.poolIds.includes(x.id));
+      }
+      return categoryPool;
+    }
+
+    // ---------- Regular combo wizard: fully driven by item.components ----------
+    // Each component is either { type:'choice', label, category, qty, poolIds? } — customer picks `qty` items
+    // from the given pool — or { type:'fixed', label, category, itemId, qty } — always included, no picker step.
+    function openComboWizard(item, qty){
+      const usedTotal = (counts) => Object.values(counts).reduce((a,b)=>a+b,0);
+      const orderQty = qty || 1;
+      const components = Array.isArray(item.components) ? item.components : [];
+      const choiceSteps = components.filter(c => c.type === 'choice' && c.qty > 0);
+      const fixedSteps = components.filter(c => c.type === 'fixed' && c.qty > 0);
+      const stepCounts = choiceSteps.map(() => ({}));
+      let stepIndex = 0;
+
+      const fmt = id => (findMenuItem(id)||{}).name || id;
+
+      const stepLabel = () => {
+        const labels = choiceSteps.map(c => c.label || 'Items');
+        labels.push('Confirm');
+        return labels.map((l,i) => i===stepIndex ? `<strong>${i+1}. ${l}</strong>` : `${i+1}. ${l}`).join(' · ');
+      };
+
+      const renderChoiceGrid = () => {
+        const comp = choiceSteps[stepIndex];
+        const counts = stepCounts[stepIndex];
+        const pool = poolForComponent(comp);
+        const needed = comp.qty * orderQty;
+        const used = usedTotal(counts);
+        const remaining = needed - used;
+
+        comboTitle.textContent = `${comp.label || 'Items'}: pick ${needed} (remaining ${Math.max(0,remaining)})`;
+        comboSteps.innerHTML = stepLabel();
+        comboContent.innerHTML = `
+          <div class="selector-grid">
+            ${pool.map(p=>`
+              <div class="select-card" data-id="${p.id}">
+                <div class="select-title">${p.name}</div>
+                <div class="select-qty">
+                  <button data-minus="${p.id}">−</button>
+                  <output data-out="${p.id}">${counts[p.id]||0}</output>
+                  <button data-plus="${p.id}">+</button>
+                </div>
+                <div class="toolrow" style="gap:6px; margin-top:6px;">
+                  <button class="btn" data-half="${p.id}">Half</button>
+                  <button class="btn" data-max="${p.id}">Max</button>
+                </div>
+              </div>`).join('')}
+          </div>`;
+
+        comboContent.querySelectorAll('[data-plus]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const id = btn.getAttribute('data-plus');
+            if (usedTotal(counts) < needed){
+              counts[id] = (counts[id]||0) + 1;
+              renderChoiceGrid();
+            }
+          });
+        });
+        comboContent.querySelectorAll('[data-minus]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const id = btn.getAttribute('data-minus');
+            counts[id] = Math.max(0, (counts[id]||0) - 1);
+            renderChoiceGrid();
+          });
+        });
+        comboContent.querySelectorAll('[data-half]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const id = btn.getAttribute('data-half');
+            const current = counts[id]||0;
+            const usedWithout = usedTotal(counts) - current;
+            const remainingForThis = Math.max(0, needed - usedWithout);
+            counts[id] = Math.min(Math.ceil(needed/2), remainingForThis);
+            renderChoiceGrid();
+          });
+        });
+        comboContent.querySelectorAll('[data-max]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const id = btn.getAttribute('data-max');
+            const current = counts[id]||0;
+            const usedWithout = usedTotal(counts) - current;
+            counts[id] = Math.max(0, needed - usedWithout);
+            renderChoiceGrid();
+          });
+        });
+
+        comboPrev.style.display = stepIndex > 0 ? 'inline-flex' : 'none';
+        comboNext.textContent = 'Next';
+        comboNext.disabled = remaining > 0;
+      };
+
+      const renderConfirm = () => {
+        comboTitle.textContent = item.name || 'Confirm Selection';
+        const parts = choiceSteps.map((comp,i) => {
+          const list = Object.entries(stepCounts[i]).filter(([,c])=>c>0).map(([id,c])=>`${fmt(id)} x${c}`);
+          return list.length ? `<div><strong>${comp.label||'Items'}:</strong> ${list.join(', ')}</div>` : '';
+        }).join('');
+        const fixedInfo = fixedSteps.length
+          ? `<div class="small muted">Also includes: ${fixedSteps.map(c=>`${c.qty*orderQty}x ${fmt(c.itemId)}`).join(', ')}</div>`
+          : '';
+        const info = (findMenuItem(item.id)?.description) || '';
+        comboSteps.innerHTML = stepLabel();
+        comboContent.innerHTML = `
+          <div class="summary" style="gap:10px;">
+            ${parts}
+            ${fixedInfo}
+            ${info?`<div class="small muted">${info}</div>`:''}
+          </div>`;
+        comboPrev.style.display = choiceSteps.length ? 'inline-flex' : 'none';
+        comboNext.textContent = 'Add to Cart';
+        comboNext.disabled = false;
+      };
+
+      comboPrev.onclick = () => {
+        if(stepIndex > 0){ stepIndex--; renderChoiceGrid(); }
+      };
+
+      comboNext.onclick = () => {
+        if(stepIndex < choiceSteps.length){
+          stepIndex++;
+          if(stepIndex < choiceSteps.length) renderChoiceGrid();
+          else renderConfirm();
+          return;
+        }
+
+        const metaParts = choiceSteps.map((comp,i) => {
+          const list = Object.entries(stepCounts[i]).filter(([,c])=>c>0).map(([id,c])=>`${fmt(id)} x${c}`);
+          return list.length ? `${comp.label||'Items'}: ${list.join(', ')}` : '';
+        }).filter(Boolean).join(' | ');
+
+        // If this exact same meal (same item + same choices) is already in the cart, stack onto it
+        // instead of creating a second, separate group.
+        const existingBundleLine = state.cart.find(l => l.groupId && l.id===item.id && l.meta===metaParts && !l.noMerge);
+
+        if(existingBundleLine){
+          const gid = existingBundleLine.groupId;
+          existingBundleLine.qty += orderQty;
+
+          choiceSteps.forEach((comp,i) => {
+            Object.entries(stepCounts[i]).filter(([,c])=>c>0).forEach(([id,c]) => {
+              const line = state.cart.find(l => l.groupId===gid && l.id===id && l.noMerge);
+              if(line) line.qty += c*orderQty;
+            });
+          });
+
+          fixedSteps.forEach(comp => {
+            const line = state.cart.find(l => l.groupId===gid && l.id===comp.itemId && l.noMerge);
+            if(line) line.qty += comp.qty*orderQty;
+          });
+
+          renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+          comboModal.close();
+          return;
+        }
+
+        const groupId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+        addToCart({ id:item.id, name:item.name, unitPrice:item.price, qty:orderQty, type:item.type, meta:metaParts, groupId });
+
+        choiceSteps.forEach((comp,i) => {
+          Object.entries(stepCounts[i]).filter(([,c])=>c>0).forEach(([id,c]) => {
+            const it = findMenuItem(id);
+            addToCart({ id, name:`${it?it.name:id}`, unitPrice:0, qty:c*orderQty, type: it?.type || 'extra', meta:item.name, noMerge:true, groupId });
+          });
+        });
+
+        fixedSteps.forEach(comp => {
+          const it = findMenuItem(comp.itemId);
+          addToCart({ id:comp.itemId, name:`${it?it.name:comp.itemId}`, unitPrice:0, qty:comp.qty*orderQty, type: it?.type || 'extra', meta:item.name, noMerge:true, groupId });
+        });
+
+        comboModal.close();
+      };
+
+      if(choiceSteps.length) renderChoiceGrid();
+      else renderConfirm();
+      comboModal.showModal();
+    }
+
+
+    // ---------- Catering combo wizard (e.g. Party Pack: pick flavoured waffles + cakes) ----------
+    function openCateringComboWizard(item, qty){
+      const usedTotal = (counts) => Object.values(counts).reduce((a,b)=>a+b,0);
+
+      if(item.id==='cat-party-pack'){
+        const wafflesNeeded = 60*(qty||1);
+        const cakesNeeded = 15*(qty||1);
+        const wafflePool = MENU.extras.filter(x=>['ex-waffle-strawnana','ex-waffle-cinapple','ex-waffle-straw','ex-waffle-choc'].includes(x.id));
+        const cakePool = getCakePool();
+        const waffleCounts = {};
+        const cakeCounts = {};
+
+        let step = 'waffles';
+
+        const stepLabel=()=>{
+          const labels = ['Waffles','Cakes','Confirm'];
+          const stepIdx = { waffles:0, cakes:1, confirm:2 }[step];
+          return labels.map((l,i)=> i===stepIdx ? `<strong>${i+1}. ${l}</strong>` : `${i+1}. ${l}`).join(' · ');
+        };
+
+        const renderPickerGrid=(needed,curCounts,pickPool,onChange)=>{
+          const used = usedTotal(curCounts);
+          const remaining = needed - used;
+          comboContent.innerHTML = `
+            <div class="selector-grid">
+              ${pickPool.map(p=>`
+                <div class="select-card" data-id="${p.id}">
+                  <div class="select-title">${p.name}</div>
+                  <div class="select-qty">
+                    <button data-minus="${p.id}">−</button>
+                    <output data-out="${p.id}">${curCounts[p.id]||0}</output>
+                    <button data-plus="${p.id}">+</button>
+                  </div>
+                  <div class="toolrow" style="gap:6px; margin-top:6px;">
+                    <button class="btn" data-half="${p.id}">Half</button>
+                    <button class="btn" data-max="${p.id}">Max</button>
+                  </div>
+                </div>`).join('')}
+            </div>`;
+
+          comboContent.querySelectorAll('[data-plus]').forEach(btn=>{
+            btn.addEventListener('click',()=>{
+              const id = btn.getAttribute('data-plus');
+              if (usedTotal(curCounts) < needed){
+                curCounts[id] = (curCounts[id]||0) + 1;
+                onChange();
+              }
+            });
+          });
+          comboContent.querySelectorAll('[data-minus]').forEach(btn=>{
+            btn.addEventListener('click',()=>{
+              const id = btn.getAttribute('data-minus');
+              curCounts[id] = Math.max(0, (curCounts[id]||0) - 1);
+              onChange();
+            });
+          });
+          comboContent.querySelectorAll('[data-half]').forEach(btn=>{
+            btn.addEventListener('click',()=>{
+              const id = btn.getAttribute('data-half');
+              const current = curCounts[id]||0;
+              const usedWithout = usedTotal(curCounts) - current;
+              const remainingForThis = Math.max(0, needed - usedWithout);
+              curCounts[id] = Math.min(Math.ceil(needed/2), remainingForThis);
+              onChange();
+            });
+          });
+          comboContent.querySelectorAll('[data-max]').forEach(btn=>{
+            btn.addEventListener('click',()=>{
+              const id = btn.getAttribute('data-max');
+              const current = curCounts[id]||0;
+              const usedWithout = usedTotal(curCounts) - current;
+              curCounts[id] = Math.max(0, needed - usedWithout);
+              onChange();
+            });
+          });
+
+          comboPrev.style.display='none';
+          comboNext.textContent = 'Next';
+          comboNext.disabled = remaining>0;
+        };
+
+        const renderWaffleGrid=()=>{
+          const used = usedTotal(waffleCounts);
+          const remaining = wafflesNeeded - used;
+          comboTitle.textContent = `Waffles: pick ${wafflesNeeded} (remaining ${Math.max(0,remaining)})`;
+          comboSteps.innerHTML = stepLabel();
+          renderPickerGrid(wafflesNeeded, waffleCounts, wafflePool, renderWaffleGrid);
+        };
+
+        const renderCakeGrid=()=>{
+          const used = usedTotal(cakeCounts);
+          const remaining = cakesNeeded - used;
+          comboTitle.textContent = `Cakes: pick ${cakesNeeded} (remaining ${Math.max(0,remaining)})`;
+          comboSteps.innerHTML = stepLabel();
+          renderPickerGrid(cakesNeeded, cakeCounts, cakePool, renderCakeGrid);
+        };
+
+        const renderConfirm=()=>{
+          comboTitle.textContent = item.name;
+          const fmt = id => (findMenuItem(id)||{}).name||id;
+          const waffleList = Object.entries(waffleCounts).filter(([,c])=>c>0).map(([id,c])=>`${fmt(id)} x${c}`);
+          const cakeList = Object.entries(cakeCounts).filter(([,c])=>c>0).map(([id,c])=>`${fmt(id)} x${c}`);
+          comboSteps.innerHTML = stepLabel();
+          comboContent.innerHTML = `
+            <div class="summary" style="gap:10px;">
+              ${waffleList.length?`<div><strong>Waffles:</strong> ${waffleList.join(', ')}</div>`:''}
+              ${cakeList.length?`<div><strong>Cakes:</strong> ${cakeList.join(', ')}</div>`:''}
+              <div class="small muted">Includes 30 Pink Lemonades and 20 Iced Lattes automatically.</div>
+            </div>`;
+          comboPrev.style.display='none';
+          comboNext.textContent='Add to Cart';
+          comboNext.disabled=false;
+        };
+
+        comboPrev.onclick=()=>{};
+        comboNext.onclick=()=>{
+          if(step==='waffles'){
+            step='cakes';
+            renderCakeGrid();
+            return;
+          }
+          if(step==='cakes'){
+            step='confirm';
+            renderConfirm();
+            return;
+          }
+
+          const q = qty||1;
+          const comp = CATERING_COMPOSITIONS[item.id] || {};
+          const subItems = [
+            ...Object.entries(comp).map(([compId,compQty])=>{
+              const compItem = findMenuItem(compId);
+              return { id:compId, name:`${compItem?compItem.name:compId}`, perQty:compQty, type:compItem?.type||'extra' };
+            }),
+            ...Object.entries(waffleCounts).filter(([,c])=>c>0).map(([waffleId,c])=>{
+              const waffleItem = findMenuItem(waffleId);
+              return { id:waffleId, name:`${waffleItem?waffleItem.name:waffleId}`, perQty:c, type:'extra' };
+            }),
+            ...Object.entries(cakeCounts).filter(([,c])=>c>0).map(([cakeId,c])=>{
+              const cakeItem = findMenuItem(cakeId);
+              return { id:cakeId, name:`${cakeItem?cakeItem.name:cakeId}`, perQty:c, type:'extra' };
+            }),
+          ];
+          addOrStackCateringPackage(item, q, subItems);
+
+          comboModal.close();
+        };
+
+        renderWaffleGrid();
+        comboModal.showModal();
+        return;
+      }
+    }
+
+    // ---------- Ingredients tab (auto-aggregated from cart) ----------
+    function aggregateIngredients(cart = state.cart){
+      const tally={};
+      const add=(n,x=1)=>{ if(!n) return; tally[n]=(tally[n]||0)+x; };
+
+      cart.forEach(line=>{
+        if(RECIPE_MAP[line.id]){
+          const batches = batchesFor(line.id, line.qty);
+          for(const [ing,c] of Object.entries(RECIPE_MAP[line.id])) add(ing, c*batches);
+        }
+        if(line.drinks){
+          for(const [drinkId,c] of Object.entries(line.drinks)){
+            const rec = RECIPE_MAP[drinkId];
+            if(rec){
+              const totalDrinks = c*(line.qty||1);
+              const batches = batchesFor(drinkId, totalDrinks);
+              for(const [ing,n] of Object.entries(rec)) add(ing, n*batches);
+            }
+          }
+        }
+        if(line.cakes){
+          for(const [cakeId,c] of Object.entries(line.cakes)){
+            const rec = RECIPE_MAP[cakeId];
+            if(rec) for(const [ing,n] of Object.entries(rec)) add(ing, n*c*(line.qty||1));
+          }
+        }
+        if(line.waffles){
+          for(const [waffleId,c] of Object.entries(line.waffles)){
+            const rec = RECIPE_MAP[waffleId];
+            if(rec) for(const [ing,n] of Object.entries(rec)) add(ing, n*c*(line.qty||1));
+          }
+        }
+      });
+      return tally;
+    }
+
+    function renderIngredients(){
+      const wrap=document.getElementById('ingredientList');
+      const entries=Object.entries(aggregateIngredients()).sort((a,b)=>b[1]-a[1]);
+      if(!entries.length){ wrap.innerHTML='<div class="muted">No ingredients yet. Add items to the cart.</div>'; return; }
+      wrap.innerHTML = entries.map(([n,c])=>{
+        const price = INGREDIENT_PRICES[n];
+        const costHTML = price!=null ? ` <span class="small">(${currency(price*c)})</span>` : '';
+        return `<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong>${costHTML}</div></div>`;
+      }).join('');
+    }
+
+    function renderCateringIngredients(){
+      const wrap=document.getElementById('ingredientListCat');
+      if(!wrap) return;
+      const entries=Object.entries(aggregateIngredients(state.cateringCart)).sort((a,b)=>b[1]-a[1]);
+      if(!entries.length){ wrap.innerHTML='<div class="muted">No ingredients yet. Add items to the cart.</div>'; return; }
+      wrap.innerHTML = entries.map(([n,c])=>{
+        const price = INGREDIENT_PRICES[n];
+        const costHTML = price!=null ? ` <span class="small">(${currency(price*c)})</span>` : '';
+        return `<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong>${costHTML}</div></div>`;
+      }).join('');
+    }
+
+
+    // ---------- Item Totals (aggregated quantities, for collecting the order) ----------
+    function aggregateItemTotals(){
+      const tally={};
+      state.cart.forEach(l=>{
+        if(l.type==='bundle') return;
+        const name = l.name.replace(/\s*\(Included\)/,'').replace(/\s*\(Hayward\)/,'');
+        tally[name] = (tally[name]||0) + l.qty;
+      });
+      return tally;
+    }
+
+    function aggregateCateringItemTotals(){
+      const tally={};
+      state.cateringCart.forEach(l=>{
+        if(l.type==='bundle') return;
+        const name = l.name.replace(/\s*\(Included\)/,'');
+        tally[name] = (tally[name]||0) + l.qty;
+      });
+      return tally;
+    }
+
+    function renderCateringItemTotals(){
+      const container = document.getElementById('itemTotalsCat');
+      if(!container) return;
+      const entries = Object.entries(aggregateCateringItemTotals()).sort((a,b)=>a[0].localeCompare(b[0]));
+      if(!entries.length){ container.innerHTML='<div class="muted">No items yet. Add items to the cart.</div>'; return; }
+      container.innerHTML = entries.map(([n,c])=>`<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong></div></div>`).join('');
+    }
+
+    function renderItemTotals(){
+      const wrap=document.getElementById('itemTotals');
+      const entries=Object.entries(aggregateItemTotals()).sort((a,b)=>a[0].localeCompare(b[0]));
+      if(!entries.length){ wrap.innerHTML='<div class="muted">No items yet. Add items to the cart.</div>'; return; }
+      wrap.innerHTML = entries.map(([n,c])=>`<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong></div></div>`).join('');
+    }
+
+    // ---------- Simple menu popups (A La Carte / Ice Cream / Extras) ----------
+    document.getElementById('openDrinksBtn').addEventListener('click',()=>document.getElementById('drinksModal').showModal());
+    document.getElementById('closeDrinks').addEventListener('click',()=>document.getElementById('drinksModal').close());
+    document.getElementById('openIceCreamBtn').addEventListener('click',()=>document.getElementById('iceCreamModal').showModal());
+    document.getElementById('closeIceCream').addEventListener('click',()=>document.getElementById('iceCreamModal').close());
+    document.getElementById('openExtrasBtn').addEventListener('click',()=>document.getElementById('extrasModal').showModal());
+    document.getElementById('closeExtras').addEventListener('click',()=>document.getElementById('extrasModal').close());
+
+    // ---------- Loyalty (CID stamp card: 1 stamp per qualifying order, 5 stamps = free meal) ----------
+    // Hidden/disabled for now while the design is still being decided.
+    // To bring it back: set this to true, and remove display:none from the loyalty row's HTML above.
+    const LOYALTY_ENABLED = false;
+    const loyaltyCidInput = document.getElementById('loyaltyCid');
+    const loyaltyStatusEl = document.getElementById('loyaltyStatus');
+    let loyaltyDebounce = null;
+    let pendingRedeemCid = null;
+
+    function getValidLoyaltyCid(){
+      if(!LOYALTY_ENABLED) return null;
+      const val = (loyaltyCidInput.value || '').trim();
+      return /^\d{1,8}$/.test(val) ? val : null;
+    }
+
+    async function fetchLoyaltyStamps(cid){
+      try{
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty?cid=eq.${encodeURIComponent(cid)}&select=stamps`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        if(!res.ok) return null;
+        const rows = await res.json();
+        return rows.length ? rows[0].stamps : 0;
+      }catch(err){ console.error('Loyalty lookup failed:', err); return null; }
+    }
+
+    async function setLoyaltyStamps(cid, stamps){
+      try{
+        const existingRes = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty?cid=eq.${encodeURIComponent(cid)}&select=cid`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const rows = existingRes.ok ? await existingRes.json() : [];
+        const body = JSON.stringify({ cid, stamps, updated_at: new Date().toISOString() });
+
+        if(rows.length){
+          await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty?cid=eq.${encodeURIComponent(cid)}`, {
+            method:'PATCH',
+            headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+            body
+          });
+        }else{
+          await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty`, {
+            method:'POST',
+            headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+            body
+          });
+        }
+        return true;
+      }catch(err){ console.error('Loyalty save failed:', err); return false; }
+    }
+
+    async function addLoyaltyStamp(cid){
+      const current = await fetchLoyaltyStamps(cid);
+      if(current === null) return null;
+      const newStamps = current + 1;
+      const ok = await setLoyaltyStamps(cid, newStamps);
+      return ok ? newStamps : null;
+    }
+
+    function renderLoyaltyStatusDisplay(stamps){
+      if(stamps === null){
+        loyaltyStatusEl.textContent = 'Could not check loyalty status.';
+        return;
+      }
+      if(stamps >= 5){
+        loyaltyStatusEl.innerHTML = `🎉 <strong style="color:var(--accent);">Reward ready!</strong> (${stamps} stamps) <button id="redeemLoyaltyBtn" class="btn" style="padding:3px 10px;font-size:.75rem;margin-left:4px;">Redeem</button>`;
+        document.getElementById('redeemLoyaltyBtn').addEventListener('click', openRedeemLoyaltyConfirm);
+      }else{
+        loyaltyStatusEl.textContent = `⭐ ${stamps}/5 stamps`;
+      }
+    }
+
+    async function refreshLoyaltyStatus(){
+      const cid = getValidLoyaltyCid();
+      if(!cid){ loyaltyStatusEl.textContent = ''; return; }
+      loyaltyStatusEl.textContent = 'Checking…';
+      const stamps = await fetchLoyaltyStamps(cid);
+      renderLoyaltyStatusDisplay(stamps);
+    }
+
+    loyaltyCidInput.addEventListener('input', () => {
+      clearTimeout(loyaltyDebounce);
+      loyaltyDebounce = setTimeout(refreshLoyaltyStatus, 500);
+    });
+
+    function openRedeemLoyaltyConfirm(){
+      const cid = getValidLoyaltyCid();
+      if(!cid) return;
+      pendingRedeemCid = cid;
+      document.getElementById('redeemLoyaltyModal').showModal();
+    }
+    document.getElementById('closeRedeemLoyaltyModal').addEventListener('click', () => document.getElementById('redeemLoyaltyModal').close());
+    document.getElementById('cancelRedeemLoyaltyBtn').addEventListener('click', () => document.getElementById('redeemLoyaltyModal').close());
+    document.getElementById('confirmRedeemLoyaltyBtn').addEventListener('click', async () => {
+      const cid = pendingRedeemCid;
+      pendingRedeemCid = null;
+      document.getElementById('redeemLoyaltyModal').close();
+      if(!cid) return;
+      const current = await fetchLoyaltyStamps(cid);
+      if(current === null){ showAlert('Could not reach the server to redeem this reward. Try again.'); return; }
+      const remaining = Math.max(0, current - 5);
+      await setLoyaltyStamps(cid, remaining);
+      renderLoyaltyStatusDisplay(remaining);
+      showAlert(`Reward redeemed! Don't forget to comp a free meal for this order. Remaining stamps: ${remaining}/5.`, 'Reward Redeemed');
+    });
+
+
+    function renderAll(){ renderCards(); renderCart(); renderFulfillment(); renderTotals(); renderDiscount(); renderHistory(); renderIngredients(); renderItemTotals(); }
+
+    async function checkout(){
+      if(!state.cart.length){ showAlert('Your order is empty.'); return; }
+      const employeeName = (document.getElementById('employeeName')?.value || '').trim();
+      if(!employeeName){
+        showAlert('Please enter an employee name before checking out.');
+        document.getElementById('employeeName')?.focus();
+        return;
+      }
+      const subtotal=state.cart.reduce((s,l)=>s+l.unitPrice*l.qty,0);
+      const manual=+(discountableSubtotal(state.cart)*(state.discountPct/100)).toFixed(2);
+      const fee=state.fulfillment==='delivery'?(ZONE_FEES[state.deliveryZone]||0):0;
+      const total=+(subtotal+fee-manual).toFixed(2);
+      const entry={
+        id:Date.now(),
+        employee: employeeName,
+        items:state.cart.map(l=>({ id:l.id||null,name:l.name,qty:l.qty,unit:l.unitPrice,meta:l.meta||null,drinks:l.drinks||null,cakes:l.cakes||null,type:l.type||'extra',groupId:l.groupId||null,lineTotal:+(l.unitPrice*l.qty).toFixed(2) })),
+        discountPct:state.discountPct, subtotal:+subtotal.toFixed(2), deliveryFee:fee, manualDiscount:manual, total
+      };
+
+      const cid = getValidLoyaltyCid();
+      const hasMeal = entry.items.some(i => i.type === 'bundle');
+
+      state.history.unshift(entry);
+      pushHistoryToStorage(entry);
+      state.cart=[]; state.discountPct=0; renderAll();
+
+      let loyaltyMsg = '';
+      if(cid && hasMeal){
+        const newStamps = await addLoyaltyStamp(cid);
+        if(newStamps !== null){
+          renderLoyaltyStatusDisplay(newStamps);
+          loyaltyMsg = newStamps >= 5
+            ? ` 🎉 Loyalty reward unlocked (${newStamps} stamps) — click Redeem next to their CID to use it!`
+            : ` Loyalty stamp added (${newStamps}/5).`;
+        }
+      }
+
+      showAlert(`Order Total ${currency(total)} has been checked out.${loyaltyMsg}`, 'Order Completed');
+      loyaltyCidInput.value = '';
+      loyaltyStatusEl.textContent = '';
+    }
+
+    function resetAll(){
+      if(!state.cart.length) return;
+      pendingClearTarget = 'regular';
+      document.getElementById('confirmClearModal').showModal();
+    }
+    document.getElementById('closeConfirmClear').addEventListener('click',()=>document.getElementById('confirmClearModal').close());
+    document.getElementById('cancelClearBtn').addEventListener('click',()=>document.getElementById('confirmClearModal').close());
+    document.getElementById('confirmClearBtn').addEventListener('click',()=>{
+      if(pendingClearTarget==='catering'){
+        state.cateringCart=[]; state.cateringDiscountPct=0; renderCateringAll();
+      } else {
+        state.cart=[]; state.discountPct=0; renderAll(); renderIngredients();
+      }
+      document.getElementById('confirmClearModal').close();
+    });
+
+    document.getElementById('checkoutBtn2').addEventListener('click',checkout);
+    document.getElementById('resetBtn2').addEventListener('click',resetAll);
+
+    let pendingRemoveMealGroupId = null;
+    function openRemoveMealConfirm(groupId){
+      pendingRemoveMealGroupId = groupId;
+      document.getElementById('removeMealModal').showModal();
+    }
+    document.getElementById('closeRemoveMealModal').addEventListener('click',()=>document.getElementById('removeMealModal').close());
+    document.getElementById('cancelRemoveMealBtn').addEventListener('click',()=>document.getElementById('removeMealModal').close());
+    document.getElementById('confirmRemoveMealBtn').addEventListener('click',()=>{
+      if(pendingRemoveMealGroupId){
+        state.cart = state.cart.filter(l => l.groupId !== pendingRemoveMealGroupId);
+        renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
+      }
+      pendingRemoveMealGroupId = null;
+      document.getElementById('removeMealModal').close();
+    });
+
+    const themeBtn=document.getElementById('themeBtn');
+    let currentTheme = savedTheme;
+    function applyTheme(t){
+      currentTheme = t;
+      document.documentElement.setAttribute('data-theme',t);
+      themeBtn.textContent=t==='dark'?'☀️ Light':'🌙 Dark';
+      themeBtn.setAttribute('aria-pressed',t==='dark');
+    }
+    applyTheme(currentTheme);
+    themeBtn.addEventListener('click',()=>{
+      applyTheme(currentTheme==='light'?'dark':'light');
+      persistState();
+    });
+
+    const employeeNameInput=document.getElementById('employeeName');
+    let rememberedEmployeeName = savedEmployeeName;
+    employeeNameInput.value = rememberedEmployeeName;
+    employeeNameInput.addEventListener('input',()=>{
+      rememberedEmployeeName = employeeNameInput.value;
+      persistState();
+    });
+
+    // ---------- Init: render everything on page load ----------
+    renderAll();
+    refreshHistoryFromStorage();
+  })();
+  </script>
+</body>
+</html>
