@@ -954,7 +954,7 @@
       return;
     }
 
-    const items = (MENU[activeEditCategory] || []).filter(i => !i.id.startsWith('custom-') && !isDeleted(i.id)); // custom items are managed above, not here
+    const items = (MENU[activeEditCategory] || []).filter(i => !isDeleted(i.id));
 
     if(!items.length){
       editList.innerHTML = '<div class="empty">No items in this category.</div>';
@@ -964,10 +964,12 @@
     editList.innerHTML = items.map(raw => {
       const item = effectiveItem(raw);
       const hasOverride = !!menuOverrides[raw.id];
+      const isCustom = raw.id.startsWith('custom-');
 
       return `
         <div class="edit-row ${hasOverride ? 'overridden' : ''}" data-id="${raw.id}">
           ${hasOverride ? '<div class="override-tag">Edited</div>' : ''}
+          ${isCustom ? '<div class="override-tag" style="color:var(--tan);">Custom Item</div>' : ''}
           <div class="fields">
             <input type="text" class="edit-name full" value="${item.name.replace(/"/g,'&quot;')}">
             <input type="number" class="edit-price" value="${item.price}" min="0" step="1">
