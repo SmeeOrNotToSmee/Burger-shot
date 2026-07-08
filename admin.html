@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Burger Shot — Manage Menu</title>
   <link rel="icon" type="image/webp" href="https://i.postimg.cc/MZ31wNhy/Burger-Shot-Logo-Small.webp">
-  <meta name="theme-color" content="#0b2e70">
+  <meta name="theme-color" content="#c41230">
   <style>
     :root {
       --brown:#c41230; --tan:#1b3a63; --cream:#ede7d3; --ink:#1a1a1a; --muted:#6b7280;
@@ -31,7 +31,7 @@
     input,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.95rem}
     select{
       appearance:none;-webkit-appearance:none;-moz-appearance:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%236b4f3b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%23c41230' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
       background-repeat:no-repeat;
       background-position:right 12px center;
       background-size:14px;
@@ -40,10 +40,10 @@
       transition:border-color .15s ease, box-shadow .15s ease;
     }
     [data-theme="dark"] select{
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%23efe9e2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%23e8eaed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     }
     select:hover{border-color:var(--accent)}
-    select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(107,79,59,.18)}
+    select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(196,18,48,.18)}
     select[multiple]{appearance:auto;-webkit-appearance:auto;-moz-appearance:auto;background-image:none;padding-right:12px;cursor:auto}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);cursor:pointer;font-weight:600;text-decoration:none;transition:background .15s ease,color .15s ease,border-color .15s ease,filter .15s ease}
     .btn.primary{background:var(--brown);border:2px solid var(--cream);color:#fff}
@@ -1223,14 +1223,48 @@
   function recipeLineHTML(line, idx){
     const ingredientOptions = allKnownIngredientNames().map(n => `<option value="${n}" ${line.name===n?'selected':''}>${n}</option>`).join('');
     return `
-      <div class="recipe-row" data-idx="${idx}">
+      <div class="recipe-row" data-idx="${idx}" style="grid-template-columns:1fr 90px auto auto;">
         <select class="recipe-ingredient">
           <option value="">Choose ingredient…</option>
           ${ingredientOptions}
         </select>
         <input type="number" class="recipe-qty" min="1" step="1" value="${line.qty||1}">
+        <span class="small recipe-line-cost" style="white-space:nowrap;"></span>
         <button class="btn danger remove-recipe-line">Remove</button>
       </div>`;
+  }
+
+  function lineCost(line){
+    const price = INGREDIENT_PRICES[line.name];
+    if(!line.name) return null;
+    if(price == null) return null;
+    return price * (line.qty || 0);
+  }
+
+  function updateRecipeCostSummary(){
+    const summaryEl = recipeEditModalBody.querySelector('#recipeCostSummary');
+    if(!summaryEl) return;
+
+    recipeEditModalBody.querySelectorAll('.recipe-row').forEach(row => {
+      const idx = +row.dataset.idx;
+      const line = workingRecipeLines[idx];
+      const costEl = row.querySelector('.recipe-line-cost');
+      if(!costEl || !line) return;
+      if(!line.name){ costEl.textContent = ''; return; }
+      const cost = lineCost(line);
+      costEl.textContent = cost == null ? 'no price set' : currency(cost);
+    });
+
+    let total = 0;
+    let missing = false;
+    workingRecipeLines.forEach(l => {
+      if(!l.name) return;
+      const cost = lineCost(l);
+      if(cost == null) missing = true;
+      else total += cost;
+    });
+
+    summaryEl.innerHTML = `Cost to make: <strong>${currency(total)}</strong>${missing ? ' <span class="small">(some ingredients have no price set yet)</span>' : ''}`;
   }
 
   function renderRecipeLines(){
@@ -1242,15 +1276,19 @@
       const idx = +row.dataset.idx;
       row.querySelector('.recipe-ingredient').addEventListener('change', e => {
         workingRecipeLines[idx].name = e.target.value;
+        updateRecipeCostSummary();
       });
       row.querySelector('.recipe-qty').addEventListener('input', e => {
         workingRecipeLines[idx].qty = Math.max(1, Number(e.target.value) || 1);
+        updateRecipeCostSummary();
       });
       row.querySelector('.remove-recipe-line').addEventListener('click', () => {
         workingRecipeLines.splice(idx,1);
         renderRecipeLines();
       });
     });
+
+    updateRecipeCostSummary();
   }
 
   function openRecipeEditModal(itemId){
@@ -1266,6 +1304,11 @@
       <div id="recipeLinesContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
       <div class="toolrow" style="justify-content:flex-start;">
         <button class="btn ghost" id="addRecipeLineBtn">+ Add Ingredient</button>
+      </div>
+      <div class="divider"></div>
+      <div class="toolrow" style="justify-content:space-between;">
+        <span id="recipeCostSummary"></span>
+        <span class="small">Sells for ${currency(item.price)}</span>
       </div>
       <div class="toolrow" style="justify-content:flex-end;">
         ${hasOverride ? `<button class="btn ghost" id="resetRecipeBtn">Reset to Default</button>` : ''}
