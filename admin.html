@@ -104,6 +104,9 @@
     .price-field{position:relative;display:inline-block;width:100%}
     .price-field::before{content:'$';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:.9rem}
     .price-field input{padding-left:22px !important}
+    .price-field input[type=number]{-moz-appearance:textfield;appearance:none}
+    .price-field input[type=number]::-webkit-outer-spin-button,
+    .price-field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   </style>
 </head>
 <body>
