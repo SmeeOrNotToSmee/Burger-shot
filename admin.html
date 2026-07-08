@@ -101,6 +101,9 @@
     .component-row .remove-component{padding:6px 10px;font-size:.8rem}
     .components-wrap{display:flex;flex-direction:column;gap:8px}
     .components-label{font-size:.82rem;color:var(--muted);margin-top:4px}
+    .price-field{position:relative;display:inline-block;width:100%}
+    .price-field::before{content:'$';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:.9rem}
+    .price-field input{padding-left:22px !important}
   </style>
 </head>
 <body>
@@ -145,8 +148,8 @@
         </div>
 
         <div>
-          <label for="itemPrice">Price ($)</label>
-          <input id="itemPrice" type="number" min="0" step="1" placeholder="0">
+          <label for="itemPrice">Price</label>
+          <div class="price-field"><input id="itemPrice" type="number" min="0" step="1" placeholder="0"></div>
         </div>
 
         <div id="bundleFields">
@@ -245,7 +248,7 @@
       <div class="content">
         <div style="display:grid;grid-template-columns:1fr 120px auto;gap:8px;">
           <input type="text" id="newIngredientName" placeholder="Ingredient name (e.g. Vanilla Syrup)">
-          <input type="number" id="newIngredientPrice" placeholder="Price $" min="0" step="0.01">
+          <div class="price-field"><input type="number" id="newIngredientPrice" placeholder="Price" min="0" step="0.01"></div>
           <button class="btn primary" id="addIngredientBtn">Add</button>
         </div>
       </div>
@@ -891,8 +894,8 @@
       <input type="text" class="edit-name name-input" value="${item.name.replace(/"/g,'&quot;')}">
       <input type="text" class="edit-description full" placeholder="Description (shown under the name, like on the calculator)" value="${(item.description||'').replace(/"/g,'&quot;')}" style="font-size:.85rem;color:var(--muted);border:1px dashed var(--border);border-radius:8px;padding:6px 8px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:.85rem;color:var(--muted);">Price $</span>
-        <input type="number" class="edit-price" value="${item.price}" min="0" step="1" style="width:110px;border:1px dashed var(--border);border-radius:8px;padding:6px 8px;">
+        <span style="font-size:.85rem;color:var(--muted);">Price</span>
+        <div class="price-field" style="width:110px;"><input type="number" class="edit-price" value="${item.price}" min="0" step="1" style="border:1px dashed var(--border);border-radius:8px;padding:6px 8px;"></div>
       </div>
       <div class="bundle-components-container"></div>
       <div class="actions">
@@ -972,7 +975,7 @@
           ${isCustom ? '<div class="override-tag" style="color:var(--tan);">Custom Item</div>' : ''}
           <div class="fields">
             <input type="text" class="edit-name full" value="${item.name.replace(/"/g,'&quot;')}">
-            <input type="number" class="edit-price" value="${item.price}" min="0" step="1">
+            <div class="price-field"><input type="number" class="edit-price" value="${item.price}" min="0" step="1"></div>
           </div>
           <div class="actions">
             <button class="btn danger delete-btn" style="margin-right:auto;">Delete</button>
@@ -1050,7 +1053,7 @@
     container.innerHTML = workingDeliveryZones.map((z,i) => `
       <div class="settings-row" data-idx="${i}">
         <input type="text" class="zone-label" value="${z.label.replace(/"/g,'&quot;')}" placeholder="Zone name (e.g. Sandy)">
-        <input type="number" class="zone-fee" value="${z.fee}" min="0" step="5">
+        <div class="price-field"><input type="number" class="zone-fee" value="${z.fee}" min="0" step="5"></div>
         <button class="btn danger remove-zone">Remove</button>
       </div>`).join('') || '<div class="empty">No delivery zones — the Delivery option won\'t charge a fee.</div>';
 
