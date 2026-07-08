@@ -107,7 +107,7 @@
   <!-- No login gate for now — open access until a Supabase project (and, if wanted later,
        an owner-login flow) is set up. Anyone with this URL can edit the menu. -->
   <div id="adminApp">
-  <div class="container">
+  <div class="container" id="mainContainer">
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true">
@@ -224,21 +224,40 @@
     </div>
   </div>
 
-  <dialog id="ingredientsModal" style="width:min(520px,94vw);">
-    <div class="modal-header">
-      <strong>🧾 Ingredients</strong>
-      <button class="btn" id="closeIngredientsModal" aria-label="Close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="small">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
-      <div style="display:grid;grid-template-columns:1fr 120px auto;gap:8px;">
-        <input type="text" id="newIngredientName" placeholder="Ingredient name (e.g. Vanilla Syrup)">
-        <input type="number" id="newIngredientPrice" placeholder="Price $" min="0" step="0.01">
-        <button class="btn primary" id="addIngredientBtn">Add</button>
+  <div class="container" id="ingredientsPage" hidden>
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <img src="https://i.postimg.cc/MZ31wNhy/Burger-Shot-Logo-Small.webp" alt="Burger Shot logo" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <div>
+          <h1>🧾 Ingredients</h1>
+          <div class="muted">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
+        </div>
       </div>
-      <div id="ingredientsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="toolrow">
+        <button class="btn ghost" id="backFromIngredientsBtn">← Back to Menu</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <h2>Add an Ingredient</h2>
+      <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 120px auto;gap:8px;">
+          <input type="text" id="newIngredientName" placeholder="Ingredient name (e.g. Vanilla Syrup)">
+          <input type="number" id="newIngredientPrice" placeholder="Price $" min="0" step="0.01">
+          <button class="btn primary" id="addIngredientBtn">Add</button>
+        </div>
+      </div>
     </div>
-  </dialog>
+
+    <div class="panel">
+      <h2>All Ingredients</h2>
+      <div class="content">
+        <div id="ingredientsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+  </div>
 
   <dialog id="recipesModal" style="width:min(520px,94vw);">
     <div class="modal-header">
@@ -1047,9 +1066,19 @@
   const shopSettingsModal = document.getElementById('shopSettingsModal');
   document.getElementById('openShopSettingsBtn').addEventListener('click', () => shopSettingsModal.showModal());
 
-  const ingredientsModal = document.getElementById('ingredientsModal');
-  document.getElementById('openIngredientsBtn').addEventListener('click', () => ingredientsModal.showModal());
-  document.getElementById('closeIngredientsModal').addEventListener('click', () => ingredientsModal.close());
+  const mainContainer = document.getElementById('mainContainer');
+  const ingredientsPage = document.getElementById('ingredientsPage');
+  document.getElementById('openIngredientsBtn').addEventListener('click', () => {
+    mainContainer.hidden = true;
+    ingredientsPage.hidden = false;
+    renderIngredientsList();
+    window.scrollTo(0,0);
+  });
+  document.getElementById('backFromIngredientsBtn').addEventListener('click', () => {
+    ingredientsPage.hidden = true;
+    mainContainer.hidden = false;
+    window.scrollTo(0,0);
+  });
 
   const recipesModal = document.getElementById('recipesModal');
   document.getElementById('openRecipesBtn').addEventListener('click', () => recipesModal.showModal());
