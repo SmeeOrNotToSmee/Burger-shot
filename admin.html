@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Burger Shot — Manage Menu</title>
-  <link rel="icon" type="image/png" href="https://i.ibb.co/TNstx6j/BS.png">
+  <link rel="icon" type="image/webp" href="https://i.postimg.cc/MZ31wNhy/Burger-Shot-Logo-Small.webp">
   <meta name="theme-color" content="#0b2e70">
   <style>
     :root {
-      --brown:#d62828; --tan:#0b2e70; --cream:#eef2ff; --ink:#111827; --muted:#6b7280;
-      --border:#e5e7eb; --shadow:0 10px 30px rgba(0,0,0,.10);
-      --bg:#f3f4ff; --panel:#fff; --card:#fff; --chip:#eef2ff; --text:var(--ink); --accent:var(--brown); --radius:16px;
-      --bg-dark:#020617; --panel-dark:#020617; --card-dark:#050816; --chip-dark:#111827; --text-dark:#e5e7eb; --border-dark:#1f2937;
+      --brown:#c41230; --tan:#1b3a63; --cream:#ede7d3; --ink:#1f1a17; --muted:#6b6258;
+      --border:#ddd4bf; --shadow:0 10px 30px rgba(0,0,0,.12);
+      --bg:#f6f2e7; --panel:#fffdf8; --card:#fffdf8; --chip:#f1ebd9; --text:var(--ink); --accent:var(--brown); --radius:16px;
+      --bg-dark:#161311; --panel-dark:#1d1815; --card-dark:#221c18; --chip-dark:#2b2420; --text-dark:#efe6d8; --border-dark:#3a322a;
     }
     [data-theme="dark"]{ --bg:var(--bg-dark); --panel:var(--panel-dark); --card:var(--card-dark); --chip:var(--chip-dark); --text:var(--text-dark); --border:var(--border-dark); }
     *{box-sizing:border-box}
@@ -46,7 +46,7 @@
     select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(107,79,59,.18)}
     select[multiple]{appearance:auto;-webkit-appearance:auto;-moz-appearance:auto;background-image:none;padding-right:12px;cursor:auto}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);cursor:pointer;font-weight:600;text-decoration:none;transition:background .15s ease,color .15s ease,border-color .15s ease,filter .15s ease}
-    .btn.primary{background:linear-gradient(135deg,var(--brown),var(--tan));border:none;color:#fff}
+    .btn.primary{background:var(--brown);border:2px solid var(--cream);color:#fff}
     .btn.ghost{background:transparent}
     .btn.danger{color:#e63946;border-color:#e63946}
     .btn.danger:hover{background:#e63946;color:#fff}
@@ -111,7 +111,7 @@
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true">
-          <img src="https://i.ibb.co/TNstx6j/BS.png" alt="Burger Shot logo" style="width:100%;height:100%;object-fit:contain;">
+          <img src="https://i.postimg.cc/MZ31wNhy/Burger-Shot-Logo-Small.webp" alt="Burger Shot logo" style="width:100%;height:100%;object-fit:contain;">
         </div>
         <div>
           <h1>Burger Shot — Manage Menu</h1>
