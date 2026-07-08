@@ -8,10 +8,10 @@
   <meta name="theme-color" content="#0b2e70">
   <style>
     :root {
-      --brown:#c41230; --tan:#1b3a63; --cream:#ede7d3; --ink:#1f1a17; --muted:#6b6258;
-      --border:#ddd4bf; --shadow:0 10px 30px rgba(0,0,0,.12);
-      --bg:#f6f2e7; --panel:#fffdf8; --card:#fffdf8; --chip:#f1ebd9; --text:var(--ink); --accent:var(--brown); --radius:16px;
-      --bg-dark:#161311; --panel-dark:#1d1815; --card-dark:#221c18; --chip-dark:#2b2420; --text-dark:#efe6d8; --border-dark:#3a322a;
+      --brown:#c41230; --tan:#1b3a63; --cream:#ede7d3; --ink:#1a1a1a; --muted:#6b7280;
+      --border:#dfe2e6; --shadow:0 10px 30px rgba(0,0,0,.12);
+      --bg:#eef0f3; --panel:#ffffff; --card:#ffffff; --chip:#eef1f5; --text:var(--ink); --accent:var(--brown); --radius:16px;
+      --bg-dark:#14181d; --panel-dark:#1a1f26; --card-dark:#20262e; --chip-dark:#262d36; --text-dark:#e8eaed; --border-dark:#333b46;
     }
     [data-theme="dark"]{ --bg:var(--bg-dark); --panel:var(--panel-dark); --card:var(--card-dark); --chip:var(--chip-dark); --text:var(--text-dark); --border:var(--border-dark); }
     *{box-sizing:border-box}
@@ -20,14 +20,14 @@
     .container{max-width:1600px;margin:32px auto;padding:0 16px}
     header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px}
     .brand{display:flex;align-items:center;gap:12px}
-    .brand .logo{width:48px;height:48px;border-radius:12px;box-shadow:var(--shadow);position:relative;background:var(--brown)}
+    .brand .logo{width:48px;height:48px;border-radius:12px;box-shadow:var(--shadow);position:relative;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
     .brand h1{margin:0;font-size:1.4rem;letter-spacing:.3px}
     .grid{display:grid;grid-template-columns:minmax(280px,1.3fr) minmax(220px,.85fr) minmax(220px,.85fr);gap:20px}
     .grid[hidden]{display:none}
     .panel[hidden]{display:none}
     @media (max-width:760px){.grid{grid-template-columns:1fr}}
     .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column}
-    .panel h2{margin:0;padding:16px 18px;font-size:1rem;border-bottom:1px solid var(--border)}
+    .panel h2{margin:0;padding:16px 18px;font-size:1rem;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan)}
     .panel .content{padding:16px;display:flex;flex-direction:column;flex:1}
     .section{margin-bottom:16px}
     .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;align-items:stretch}
@@ -180,8 +180,8 @@
       </aside>
 
       <aside class="panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 18px;border-bottom:1px solid var(--border);">
-          <h2 id="checkoutPanelTitle" style="margin:0;padding:0;border:none;">Checkout</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 18px;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan);">
+          <h2 id="checkoutPanelTitle" style="margin:0;padding:0;border:none;color:#fff;">Checkout</h2>
           <!-- Loyalty program hidden for now — design still being decided. Flip LOYALTY_ENABLED
                to true in the script below and remove display:none here to bring it back. -->
           <div style="display:none;align-items:center;gap:8px;">
