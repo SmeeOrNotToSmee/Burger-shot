@@ -17,7 +17,7 @@
     *{box-sizing:border-box}
     html,body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,"Noto Sans",Arial}
     h1,h2,h3{font-family:Georgia,"Times New Roman",serif;letter-spacing:.2px}
-    .container{max-width:820px;margin:32px auto;padding:0 16px}
+    .container{max-width:1100px;margin:32px auto;padding:0 16px}
     header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap}
     .brand{display:flex;align-items:center;gap:12px}
     .brand .logo{width:48px;height:48px;border-radius:12px;box-shadow:var(--shadow);background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
@@ -46,7 +46,7 @@
     select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(196,18,48,.18)}
     select[multiple]{appearance:auto;-webkit-appearance:auto;-moz-appearance:auto;background-image:none;padding-right:12px;cursor:auto}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);cursor:pointer;font-weight:600;text-decoration:none;transition:background .15s ease,color .15s ease,border-color .15s ease,filter .15s ease}
-    .btn.primary{background:var(--brown);border:2px solid var(--cream);color:#fff}
+    .btn.primary{background:linear-gradient(135deg,var(--brown),var(--tan));border:none;color:#fff}
     .btn.ghost{background:transparent}
     .btn.danger{color:#e63946;border-color:#e63946}
     .btn.danger:hover{background:#e63946;color:#fff}
@@ -101,19 +101,35 @@
     .component-row .remove-component{padding:6px 10px;font-size:.8rem}
     .components-wrap{display:flex;flex-direction:column;gap:8px}
     .components-label{font-size:.82rem;color:var(--muted);margin-top:4px}
-    .price-field{position:relative;display:inline-block;width:100%}
-    .price-field::before{content:'$';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:.9rem}
-    .price-field input{padding-left:22px !important}
-    .price-field input[type=number]{-moz-appearance:textfield;appearance:none}
-    .price-field input[type=number]::-webkit-outer-spin-button,
-    .price-field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    /* Price fields: show a $ prefix and remove native number spinner arrows */
+    .price-field{position:relative;width:100%}
+    .price-field .price-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:.9rem}
+    .price-field input.price-input{padding-left:24px}
+    input.price-input::-webkit-outer-spin-button,
+    input.price-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    input.price-input{-moz-appearance:textfield;appearance:textfield}
+    /* Ingredients grid: 3 across on desktop, fewer on narrower screens */
+    #ingredientsList{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media (max-width:680px){#ingredientsList{grid-template-columns:1fr}}
+    @media (min-width:681px) and (max-width:820px){#ingredientsList{grid-template-columns:repeat(2,1fr)}}
+    .ingredient-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);display:flex;flex-direction:column;gap:8px}
+    .ingredient-card .name{font-weight:700}
+    .ingredient-card .meta{font-size:.85rem;color:var(--muted)}
+    .ingredient-card .actions{display:flex;gap:8px;margin-top:auto;flex-wrap:wrap}
+    .ingredient-card .actions .btn{padding:7px 12px;font-size:.85rem;flex:1}
+    /* Dashboard launcher cards: 3 across on desktop, fewer on narrower screens */
+    #dashboardPanels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    #dashboardPanels .panel{margin-bottom:0;display:flex;flex-direction:column}
+    #dashboardPanels .panel .content{flex:1;justify-content:space-between}
+    @media (max-width:900px){#dashboardPanels{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:600px){#dashboardPanels{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <!-- No login gate for now — open access until a Supabase project (and, if wanted later,
        an owner-login flow) is set up. Anyone with this URL can edit the menu. -->
   <div id="adminApp">
-  <div class="container" id="mainContainer">
+  <div class="container">
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true">
@@ -130,78 +146,44 @@
       </div>
     </header>
 
+    <div id="dashboardPanels">
     <div class="panel">
-      <h2>Add an Item</h2>
+      <h2>➕ Add an Item</h2>
       <div class="content">
-        <div class="small">Items added here are saved to your shared Supabase table and appear on the calculator for everyone once SUPABASE_URL/SUPABASE_ANON_KEY are filled in below and the table exists. There's no login gate yet, so anyone with this page's URL can make changes.</div>
-
-        <div>
-          <label for="category">Category</label>
-          <select id="category">
-            <option value="classic">🍔 A La Carte</option>
-            <option value="iceCream">🍦 Ice Cream</option>
-            <option value="extras">🎁 Extras</option>
-            <option value="bundles">🍔 Combos &amp; Bundles</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="itemName">Item Name</label>
-          <input id="itemName" type="text" placeholder="e.g. Double Choc Cookie">
-        </div>
-
-        <div>
-          <label for="itemPrice">Price</label>
-          <div class="price-field"><input id="itemPrice" type="number" min="0" step="1" placeholder="0"></div>
-        </div>
-
-        <div id="bundleFields">
-          <div>
-            <label for="itemDescription">Description (shown on the card)</label>
-            <input id="itemDescription" type="text" placeholder="e.g. Choice of 5 drinks + 5 waffles">
-          </div>
-          <div class="small">After you click "Add Item," the contents editor will open automatically so you can pick what's included (choices, fixed items, and quantities).</div>
-        </div>
-
-        <small class="warning" id="formWarning">⚠ Enter a name and a price greater than $0.</small>
-
-        <div class="toolrow">
-          <button class="btn primary" id="addBtn">Add Item</button>
-        </div>
+        <div class="small">Add new items to the shop's menu — they appear on the calculator right away.</div>
+        <button class="btn" data-open-target="addItemPanel" style="align-self:flex-start;">➕ Open Add an Item</button>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Items Added So Far (this device)</h2>
-      <div class="content" id="customList" style="gap:10px;"></div>
+      <h2>🗂️ Items Added So Far</h2>
+      <div class="content">
+        <div class="small">Items you've added on this device.</div>
+        <button class="btn" data-open-target="customItemsPanel" style="align-self:flex-start;">🗂️ Open Items Added So Far</button>
+      </div>
     </div>
 
     <div class="panel">
       <h2>🍔 Combos &amp; Bundles</h2>
       <div class="content">
         <div class="small">Click a bundle to open its editor — change the price, name, description, or exactly what's included.</div>
-        <div id="editBundlesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <button class="btn" data-open-target="bundlesPanel" style="align-self:flex-start;">🍔 Open Combos &amp; Bundles</button>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Edit Existing Items</h2>
+      <h2>✏️ Edit Existing Items</h2>
       <div class="content">
         <div class="small">Pick a category to show its items, change a price or name, and hit Save. This saves an override on this device — it doesn't rewrite the original menu file, and you can reset any item back to its default anytime.</div>
-        <div class="toolrow" id="editCategoryButtons" style="justify-content:flex-start;">
-          <button class="btn" data-category="classic">🍔 A La Carte</button>
-          <button class="btn" data-category="iceCream">🍦 Ice Cream</button>
-          <button class="btn" data-category="extras">🎁 Extras</button>
-        </div>
-        <div id="editList" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button class="btn" data-open-target="editItemsPanel" style="align-self:flex-start;">✏️ Open Edit Existing Items</button>
       </div>
     </div>
 
     <div class="panel">
       <h2>🗑️ Deleted Items</h2>
       <div class="content">
-        <div class="small">Anything deleted from Meals &amp; Bundles or Edit Existing Items shows up here — nothing is ever permanently removed from the menu file, so you can bring it back anytime.</div>
-        <div id="deletedList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="small">Anything deleted from Combos &amp; Bundles or Edit Existing Items shows up here — nothing is ever permanently removed from the menu file, so you can bring it back anytime.</div>
+        <button class="btn" data-open-target="deletedItemsPanel" style="align-self:flex-start;">🗑️ Open Deleted Items</button>
       </div>
     </div>
 
@@ -209,7 +191,7 @@
       <h2>⚙️ Shop Settings</h2>
       <div class="content">
         <div class="small">Discount tiers and delivery zone fees used at checkout, for both the regular order and catering flows.</div>
-        <button class="btn" id="openShopSettingsBtn" style="align-self:flex-start;">⚙️ Open Shop Settings</button>
+        <button class="btn" data-open-target="shopSettingsPanel" style="align-self:flex-start;">⚙️ Open Shop Settings</button>
       </div>
     </div>
 
@@ -217,7 +199,7 @@
       <h2>🧾 Ingredients</h2>
       <div class="content">
         <div class="small">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
-        <button class="btn" id="openIngredientsBtn" style="align-self:flex-start;">🧾 Open Ingredients</button>
+        <button class="btn" data-open-target="ingredientsPanel" style="align-self:flex-start;">🧾 Open Ingredients</button>
       </div>
     </div>
 
@@ -225,62 +207,241 @@
       <h2>📋 Recipes</h2>
       <div class="content">
         <div class="small">Pick an item to add or edit what ingredients (and how many) it takes to make.</div>
-        <button class="btn" id="openRecipesBtn" style="align-self:flex-start;">📋 Open Recipes</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="container" id="ingredientsPage" hidden>
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <img src="https://i.postimg.cc/MZ31wNhy/Burger-Shot-Logo-Small.webp" alt="Burger Shot logo" style="width:100%;height:100%;object-fit:contain;">
-        </div>
-        <div>
-          <h1>🧾 Ingredients</h1>
-          <div class="muted">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
-        </div>
-      </div>
-      <div class="toolrow">
-        <button class="btn ghost" id="backFromIngredientsBtn">← Back to Menu</button>
-      </div>
-    </header>
-
-    <div class="panel">
-      <h2>Add an Ingredient</h2>
-      <div class="content">
-        <div style="display:grid;grid-template-columns:1fr 120px auto;gap:8px;">
-          <input type="text" id="newIngredientName" placeholder="Ingredient name (e.g. Vanilla Syrup)">
-          <div class="price-field"><input type="number" id="newIngredientPrice" placeholder="Price" min="0" step="0.01"></div>
-          <button class="btn primary" id="addIngredientBtn">Add</button>
-        </div>
+        <button class="btn" data-open-target="recipesPanel" style="align-self:flex-start;">📋 Open Recipes</button>
       </div>
     </div>
 
     <div class="panel">
-      <h2>All Ingredients</h2>
+      <h2>🎁 Loyalty</h2>
       <div class="content">
-        <div id="ingredientsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="small">Look up a customer's CID and manually add or remove stamps — for corrections, comps, or fixing a mistake.</div>
+        <button class="btn" data-open-target="loyaltyPanel" style="align-self:flex-start;">🎁 Open Loyalty</button>
+      </div>
+    </div>
+    </div>
+
+    <div id="addItemPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>➕ Add an Item</h2>
+        <div class="content">
+          <div class="small">Items added here appear on the calculator right away. Since there's no shared login/admin system yet, they're saved to this browser only — they won't automatically show up on other computers. That's the next piece we'll build.</div>
+
+          <div>
+            <label for="category">Category</label>
+            <select id="category">
+              <option value="classic">🍔 A La Carte</option>
+              <option value="iceCream">🍦 Ice Cream</option>
+              <option value="extras">🎁 Extras</option>
+              <option value="bundles">🍔 Combos &amp; Bundles</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="itemName">Item Name</label>
+            <input id="itemName" type="text" placeholder="e.g. Double Choc Cookie">
+          </div>
+
+          <div>
+            <label for="itemPrice">Price</label>
+            <div class="price-field">
+              <span class="price-prefix">$</span>
+              <input id="itemPrice" type="number" class="price-input" min="0" step="1" placeholder="0">
+            </div>
+          </div>
+
+          <div id="bundleFields">
+            <div>
+              <label for="itemDescription">Description (shown on the card)</label>
+              <input id="itemDescription" type="text" placeholder="e.g. Choice of 5 drinks + 5 waffles">
+            </div>
+            <div class="small">After you click "Add Item," the contents editor will open automatically so you can pick what's included (choices, fixed items, and quantities).</div>
+          </div>
+
+          <small class="warning" id="formWarning">⚠ Enter a name and a price greater than $0.</small>
+
+          <div class="toolrow">
+            <button class="btn primary" id="addBtn">Add Item</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="customItemsPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>Items Added So Far (this device)</h2>
+        <div class="content" id="customList" style="gap:10px;"></div>
+      </div>
+    </div>
+
+    <div id="bundlesPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>🍔 Combos &amp; Bundles</h2>
+        <div class="content">
+          <div class="small">Click a bundle to open its editor — change the price, name, description, or exactly what's included.</div>
+          <div id="editBundlesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="editItemsPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>Edit Existing Items</h2>
+        <div class="content">
+          <div class="small">Pick a category to show its items, change a price or name, and hit Save. This saves an override on this device — it doesn't rewrite the original menu file, and you can reset any item back to its default anytime.</div>
+          <div class="toolrow" id="editCategoryButtons" style="justify-content:flex-start;">
+            <button class="btn" data-category="classic">🍔 A La Carte</button>
+            <button class="btn" data-category="iceCream">🍦 Ice Cream</button>
+            <button class="btn" data-category="extras">🎁 Extras</button>
+          </div>
+          <div id="editList" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="deletedItemsPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>🗑️ Deleted Items</h2>
+        <div class="content">
+          <div class="small">Anything deleted from Combos &amp; Bundles or Edit Existing Items shows up here — nothing is ever permanently removed from the menu file, so you can bring it back anytime.</div>
+          <div id="deletedList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="shopSettingsPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>⚙️ Shop Settings</h2>
+        <div class="content">
+          <div class="small">These control the buttons customers' orders use at checkout — the discount tiers and delivery zone fees. Changes apply to both the regular order and catering flows.</div>
+
+          <div>
+            <label style="margin-bottom:8px;display:block;">Discount Tiers <span class="muted" style="font-weight:400;">("0%" is always available and can't be removed)</span></label>
+            <div id="discountTiersList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <div class="toolrow" style="justify-content:flex-start;margin-top:8px;">
+              <button class="btn ghost" id="addTierBtn">+ Add Tier</button>
+            </div>
+          </div>
+
+          <div>
+            <label style="margin-bottom:8px;display:block;">Delivery Zones &amp; Fees</label>
+            <div id="deliveryZonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <div class="toolrow" style="justify-content:flex-start;margin-top:8px;">
+              <button class="btn ghost" id="addZoneBtn">+ Add Zone</button>
+            </div>
+          </div>
+
+          <div class="toolrow" style="justify-content:flex-end;">
+            <button class="btn ghost" id="resetShopSettingsBtn">Reset to Defaults</button>
+            <button class="btn primary" id="saveShopSettingsBtn">Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ingredientsPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+
+      <div class="panel">
+        <h2>🧾 Add an Ingredient</h2>
+        <div class="content">
+          <div class="small">Add ingredients so they're available to use when building recipes, and set prices for the ingredient cost list.</div>
+          <div style="display:grid;grid-template-columns:1fr 120px auto;gap:8px;">
+            <input type="text" id="newIngredientName" placeholder="Ingredient name (e.g. Vanilla Syrup)">
+            <div class="price-field">
+              <span class="price-prefix">$</span>
+              <input type="number" id="newIngredientPrice" class="price-input" placeholder="0" min="0" step="0.01">
+            </div>
+            <button class="btn primary" id="addIngredientBtn">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>All Ingredients</h2>
+        <div class="content" id="ingredientsList" style="gap:8px;"></div>
+      </div>
+    </div>
+
+    <div id="recipesPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+      <div class="panel">
+        <h2>📋 Recipes</h2>
+        <div class="content">
+          <div class="small">Pick an item to add or edit what ingredients (and how many) it takes to make.</div>
+          <div class="toolrow" id="recipeCategoryButtons" style="justify-content:flex-start;">
+            <button class="btn" data-recipe-category="classic">🍔 A La Carte</button>
+            <button class="btn" data-recipe-category="iceCream">🍦 Ice Cream</button>
+            <button class="btn" data-recipe-category="extras">🎁 Extras</button>
+            <button class="btn" data-recipe-category="bundles">🍔 Combos &amp; Bundles</button>
+          </div>
+          <div id="recipeItemsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loyaltyPanel" class="admin-subpanel" style="display:none;">
+      <div class="toolrow" style="justify-content:flex-start;margin-bottom:16px;">
+        <button class="btn ghost back-to-menu-btn">← Back to Menu</button>
+      </div>
+
+      <div class="panel">
+        <h2>🎁 Look Up a Customer</h2>
+        <div class="content">
+          <div class="small">Enter a customer's CID to see their current stamp count.</div>
+          <input type="text" id="adminLoyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8" style="max-width:220px;">
+          <div id="adminLoyaltyStatus" class="muted" style="font-size:.9rem;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Manually Add / Remove Stamps</h2>
+        <div class="content">
+          <div class="small">For corrections or comps — this doesn't go through the normal checkout/redeem flow.</div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end;">
+            <div>
+              <label for="adminLoyaltyAmount">Amount</label>
+              <input type="number" id="adminLoyaltyAmount" min="1" step="1" value="1">
+            </div>
+            <button class="btn primary" id="adminAddStampsBtn">+ Add</button>
+            <button class="btn danger" id="adminRemoveStampsBtn">− Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🍽️ Which Meals Can Be Redeemed</h2>
+        <div class="content">
+          <div class="small">Uncheck any meal or bundle you don't want customers redeeming for free with loyalty stamps. When redeeming, the calculator picks the cheapest <em>eligible</em> meal in the cart — if none of the checked meals are in the cart, redemption is blocked. Leaving everything checked matches the old behavior (any meal is eligible).</div>
+          <div id="loyaltyEligibleBundlesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <div class="toolrow" style="justify-content:flex-end;">
+            <button class="btn primary" id="saveLoyaltyEligibleBundlesBtn">Save</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-  <dialog id="recipesModal" style="width:min(520px,94vw);">
-    <div class="modal-header">
-      <strong>📋 Recipes</strong>
-      <button class="btn" id="closeRecipesModal" aria-label="Close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="small">Pick an item to add or edit what ingredients (and how many) it takes to make.</div>
-      <div class="toolrow" id="recipeCategoryButtons" style="justify-content:flex-start;">
-        <button class="btn" data-recipe-category="classic">🍔 A La Carte</button>
-        <button class="btn" data-recipe-category="iceCream">🍦 Ice Cream</button>
-        <button class="btn" data-recipe-category="extras">🎁 Extras</button>
-        <button class="btn" data-recipe-category="bundles">🍔 Combos &amp; Bundles</button>
-      </div>
-      <div id="recipeItemsList" style="display:flex;flex-direction:column;gap:8px;"></div>
-    </div>
-  </dialog>
 
   <dialog id="recipeEditModal" style="width:min(520px,94vw);">
     <div class="modal-header">
@@ -288,37 +449,6 @@
       <button class="btn" id="closeRecipeEditModal" aria-label="Close">✕</button>
     </div>
     <div class="modal-body" id="recipeEditModalBody"></div>
-  </dialog>
-
-  <dialog id="shopSettingsModal" style="width:min(560px,94vw);">
-    <div class="modal-header">
-      <strong>⚙️ Shop Settings</strong>
-      <button class="btn" id="closeShopSettingsModal">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="small">These control the buttons customers' orders use at checkout — the discount tiers and delivery zone fees. Changes apply to both the regular order and catering flows.</div>
-
-      <div>
-        <label style="margin-bottom:8px;display:block;">Discount Tiers <span class="muted" style="font-weight:400;">("0%" is always available and can't be removed)</span></label>
-        <div id="discountTiersList" style="display:flex;flex-direction:column;gap:8px;"></div>
-        <div class="toolrow" style="justify-content:flex-start;margin-top:8px;">
-          <button class="btn ghost" id="addTierBtn">+ Add Tier</button>
-        </div>
-      </div>
-
-      <div>
-        <label style="margin-bottom:8px;display:block;">Delivery Zones &amp; Fees</label>
-        <div id="deliveryZonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
-        <div class="toolrow" style="justify-content:flex-start;margin-top:8px;">
-          <button class="btn ghost" id="addZoneBtn">+ Add Zone</button>
-        </div>
-      </div>
-
-      <div class="toolrow" style="justify-content:flex-end;">
-        <button class="btn ghost" id="resetShopSettingsBtn">Reset to Defaults</button>
-        <button class="btn primary" id="saveShopSettingsBtn">Save Settings</button>
-      </div>
-    </div>
   </dialog>
 
   <dialog id="adminAlertModal" style="width:min(440px,94vw);">
@@ -410,6 +540,10 @@
   let deletedItemIds = [];
   let recipeOverrides = {};
   let customIngredients = [];
+  // null = no restriction set yet (every meal/bundle is eligible, matching old behavior).
+  // Once saved once, it's an explicit array of bundle IDs allowed to be redeemed for a
+  // free-meal loyalty reward — anything not in the list can't be redeemed against.
+  let loyaltyEligibleBundleIds = null;
 
   // Pristine copy of the shop settings shipped in menu-data.js, captured before
   // any server-saved overrides are applied — used by "Reset to Defaults".
@@ -434,6 +568,7 @@
       deletedItemIds = Array.isArray(row.deleted_ids) ? row.deleted_ids : [];
       recipeOverrides = (row.recipe_overrides && typeof row.recipe_overrides === 'object') ? row.recipe_overrides : {};
       customIngredients = Array.isArray(row.custom_ingredients) ? row.custom_ingredients : [];
+      loyaltyEligibleBundleIds = Array.isArray(row.loyalty_eligible_bundles) ? row.loyalty_eligible_bundles : null;
 
       if(row.shop_settings && Array.isArray(row.shop_settings.discountTiers)){
         SHOP_SETTINGS.discountTiers = row.shop_settings.discountTiers;
@@ -486,6 +621,7 @@
     renderDeliveryZonesList();
     renderIngredientsList();
     renderRecipeItemsList();
+    renderLoyaltyEligibleBundles();
   }
 
   async function syncStateToServer(){
@@ -509,11 +645,12 @@
           deleted_ids: deletedItemIds,
           shop_settings: { discountTiers: SHOP_SETTINGS.discountTiers, deliveryZones: SHOP_SETTINGS.deliveryZones },
           recipe_overrides: recipeOverrides,
-          custom_ingredients: customIngredients
+          custom_ingredients: customIngredients,
+          loyalty_eligible_bundles: loyaltyEligibleBundleIds
         })
       });
       if(!res.ok){
-        showAdminAlert('Failed to save your change to the server. Make sure SUPABASE_URL/SUPABASE_ANON_KEY are filled in above and the burgershot_menu_state table exists with the right columns.', 'Save Failed');
+        showAdminAlert('Failed to save your change to the server. Make sure SUPABASE_URL/SUPABASE_ANON_KEY are filled in above and the burgershot_menu_state table exists with the right columns (including loyalty_eligible_bundles).', 'Save Failed');
         return false;
       }
       return true;
@@ -896,9 +1033,9 @@
     bundleEditModalBody.innerHTML = `
       <input type="text" class="edit-name name-input" value="${item.name.replace(/"/g,'&quot;')}">
       <input type="text" class="edit-description full" placeholder="Description (shown under the name, like on the calculator)" value="${(item.description||'').replace(/"/g,'&quot;')}" style="font-size:.85rem;color:var(--muted);border:1px dashed var(--border);border-radius:8px;padding:6px 8px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:.85rem;color:var(--muted);">Price</span>
-        <div class="price-field" style="width:110px;"><input type="number" class="edit-price" value="${item.price}" min="0" step="1" style="border:1px dashed var(--border);border-radius:8px;padding:6px 8px;"></div>
+      <div class="price-field" style="width:110px;">
+        <span class="price-prefix">$</span>
+        <input type="number" class="edit-price price-input" value="${item.price}" min="0" step="1" style="width:100%;border:1px dashed var(--border);border-radius:8px;padding:6px 8px 6px 22px;">
       </div>
       <div class="bundle-components-container"></div>
       <div class="actions">
@@ -978,7 +1115,10 @@
           ${isCustom ? '<div class="override-tag" style="color:var(--tan);">Custom Item</div>' : ''}
           <div class="fields">
             <input type="text" class="edit-name full" value="${item.name.replace(/"/g,'&quot;')}">
-            <div class="price-field"><input type="number" class="edit-price" value="${item.price}" min="0" step="1"></div>
+            <div class="price-field">
+              <span class="price-prefix">$</span>
+              <input type="number" class="edit-price price-input" value="${item.price}" min="0" step="1">
+            </div>
           </div>
           <div class="actions">
             <button class="btn danger delete-btn" style="margin-right:auto;">Delete</button>
@@ -1056,7 +1196,10 @@
     container.innerHTML = workingDeliveryZones.map((z,i) => `
       <div class="settings-row" data-idx="${i}">
         <input type="text" class="zone-label" value="${z.label.replace(/"/g,'&quot;')}" placeholder="Zone name (e.g. Sandy)">
-        <div class="price-field"><input type="number" class="zone-fee" value="${z.fee}" min="0" step="5"></div>
+        <div class="price-field">
+          <span class="price-prefix">$</span>
+          <input type="number" class="zone-fee price-input" value="${z.fee}" min="0" step="5">
+        </div>
         <button class="btn danger remove-zone">Remove</button>
       </div>`).join('') || '<div class="empty">No delivery zones — the Delivery option won\'t charge a fee.</div>';
 
@@ -1071,27 +1214,39 @@
     });
   }
 
-  const shopSettingsModal = document.getElementById('shopSettingsModal');
-  document.getElementById('openShopSettingsBtn').addEventListener('click', () => shopSettingsModal.showModal());
+  // ---------- Generic "Open X" / "Back to Menu" subpanel switching ----------
+  // Every dashboard card just has a data-open-target button; every full-page
+  // section shares the .admin-subpanel class and a .back-to-menu-btn.
+  const dashboardPanels = document.getElementById('dashboardPanels');
+  const adminSubpanels = document.querySelectorAll('.admin-subpanel');
 
-  const mainContainer = document.getElementById('mainContainer');
-  const ingredientsPage = document.getElementById('ingredientsPage');
-  document.getElementById('openIngredientsBtn').addEventListener('click', () => {
-    mainContainer.hidden = true;
-    ingredientsPage.hidden = false;
-    renderIngredientsList();
-    window.scrollTo(0,0);
-  });
-  document.getElementById('backFromIngredientsBtn').addEventListener('click', () => {
-    ingredientsPage.hidden = true;
-    mainContainer.hidden = false;
-    window.scrollTo(0,0);
-  });
+  // A few panels want their list freshly rendered the moment they're opened.
+  const ADMIN_SUBPANEL_ON_OPEN = {
+    customItemsPanel: () => renderCustomList(),
+    bundlesPanel: () => renderBundlesList(),
+    editItemsPanel: () => renderEditList(),
+    deletedItemsPanel: () => renderDeletedList(),
+    ingredientsPanel: () => renderIngredientsList(),
+    loyaltyPanel: () => renderLoyaltyEligibleBundles()
+  };
 
-  const recipesModal = document.getElementById('recipesModal');
-  document.getElementById('openRecipesBtn').addEventListener('click', () => recipesModal.showModal());
-  document.getElementById('closeRecipesModal').addEventListener('click', () => recipesModal.close());
-  document.getElementById('closeShopSettingsModal').addEventListener('click', () => shopSettingsModal.close());
+  function showAdminSubpanel(id){
+    dashboardPanels.style.display = 'none';
+    adminSubpanels.forEach(p => { p.style.display = (p.id === id) ? 'block' : 'none'; });
+    if(ADMIN_SUBPANEL_ON_OPEN[id]) ADMIN_SUBPANEL_ON_OPEN[id]();
+  }
+
+  function backToAdminDashboard(){
+    adminSubpanels.forEach(p => { p.style.display = 'none'; });
+    dashboardPanels.style.display = 'grid';
+  }
+
+  document.querySelectorAll('[data-open-target]').forEach(btn => {
+    btn.addEventListener('click', () => showAdminSubpanel(btn.dataset.openTarget));
+  });
+  document.querySelectorAll('.back-to-menu-btn').forEach(btn => {
+    btn.addEventListener('click', backToAdminDashboard);
+  });
 
   document.getElementById('addTierBtn').addEventListener('click', () => {
     workingDiscountTiers.push({ label: 'New Tier', pct: 5 });
@@ -1142,6 +1297,8 @@
     return [...names].sort((a,b) => a.localeCompare(b));
   }
 
+  let editingIngredientName = null;
+
   function renderIngredientsList(){
     const list = document.getElementById('ingredientsList');
     const names = allKnownIngredientNames();
@@ -1154,13 +1311,31 @@
     list.innerHTML = names.map(name => {
       const price = INGREDIENT_PRICES[name];
       const isCustom = customIngredients.some(i => i.name === name);
+      const safeName = name.replace(/"/g,'&quot;');
+
+      if(editingIngredientName === name){
+        return `
+          <div class="ingredient-card">
+            <div class="name">${name}</div>
+            <div class="price-field">
+              <span class="price-prefix">$</span>
+              <input type="number" class="price-input edit-ingredient-price" min="0" step="0.01" value="${price || ''}" placeholder="0">
+            </div>
+            <div class="actions">
+              <button class="btn primary save-ingredient-price" data-name="${safeName}">Save</button>
+              <button class="btn ghost cancel-ingredient-edit">Cancel</button>
+            </div>
+          </div>`;
+      }
+
       return `
-        <div class="custom-row">
-          <div>
-            <strong>${name}</strong>
-            <div class="meta">${price ? currency(price) : 'No price set'}</div>
+        <div class="ingredient-card">
+          <div class="name">${name}</div>
+          <div class="meta">${price ? currency(price) : 'No price set'}</div>
+          <div class="actions">
+            <button class="btn edit-ingredient" data-name="${safeName}">Edit</button>
+            ${isCustom ? `<button class="btn danger" data-remove-ingredient="${safeName}">Remove</button>` : ''}
           </div>
-          ${isCustom ? `<button class="btn danger" data-remove-ingredient="${name.replace(/"/g,'&quot;')}">Remove</button>` : ''}
         </div>`;
     }).join('');
 
@@ -1170,9 +1345,42 @@
           const name = btn.dataset.removeIngredient;
           customIngredients = customIngredients.filter(i => i.name !== name);
           delete INGREDIENT_PRICES[name];
+          if(editingIngredientName === name) editingIngredientName = null;
           syncStateToServer();
           renderIngredientsList();
         }, 'Remove Ingredient?');
+      });
+    });
+
+    list.querySelectorAll('.edit-ingredient').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingIngredientName = btn.dataset.name;
+        renderIngredientsList();
+      });
+    });
+
+    list.querySelectorAll('.cancel-ingredient-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingIngredientName = null;
+        renderIngredientsList();
+      });
+    });
+
+    list.querySelectorAll('.save-ingredient-price').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        const card = btn.closest('.ingredient-card');
+        const price = Number(card.querySelector('.edit-ingredient-price').value) || 0;
+
+        const existing = customIngredients.find(i => i.name === name);
+        if(existing) existing.price = price;
+        else customIngredients.push({ name, price });
+
+        INGREDIENT_PRICES[name] = price;
+        syncStateToServer();
+        editingIngredientName = null;
+        renderIngredientsList();
+        renderRecipeItemsList();
       });
     });
   }
@@ -1200,6 +1408,167 @@
 
     nameInput.value = '';
     priceInput.value = '';
+  });
+
+  // ---------- Loyalty (manual stamp lookup/add/remove — separate from the checkout redeem flow) ----------
+  const adminLoyaltyCidInput = document.getElementById('adminLoyaltyCid');
+  const adminLoyaltyStatusEl = document.getElementById('adminLoyaltyStatus');
+  const adminLoyaltyAmountInput = document.getElementById('adminLoyaltyAmount');
+  let adminLoyaltyDebounce = null;
+
+  function getValidAdminLoyaltyCid(){
+    const val = (adminLoyaltyCidInput.value || '').trim();
+    return /^\d{1,8}$/.test(val) ? val : null;
+  }
+
+  async function fetchLoyaltyStamps(cid){
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty?cid=eq.${encodeURIComponent(cid)}&select=stamps`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      if(!res.ok) return null;
+      const rows = await res.json();
+      return rows.length ? rows[0].stamps : 0;
+    }catch(err){ console.error('Loyalty lookup failed:', err); return null; }
+  }
+
+  async function setLoyaltyStamps(cid, stamps){
+    try{
+      const existingRes = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty?cid=eq.${encodeURIComponent(cid)}&select=cid`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      const rows = existingRes.ok ? await existingRes.json() : [];
+      const body = JSON.stringify({ cid, stamps, updated_at: new Date().toISOString() });
+
+      if(rows.length){
+        await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty?cid=eq.${encodeURIComponent(cid)}`, {
+          method:'PATCH',
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+          body
+        });
+      }else{
+        await fetch(`${SUPABASE_URL}/rest/v1/burgershot_loyalty`, {
+          method:'POST',
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+          body
+        });
+      }
+      return true;
+    }catch(err){ console.error('Loyalty save failed:', err); return false; }
+  }
+
+  function renderAdminLoyaltyStatus(stamps){
+    if(stamps === null){
+      adminLoyaltyStatusEl.textContent = 'Could not check loyalty status.';
+      return;
+    }
+    adminLoyaltyStatusEl.textContent = stamps >= 10
+      ? `⭐ ${stamps}/10 stamps — reward ready`
+      : `⭐ ${stamps}/10 stamps`;
+  }
+
+  async function refreshAdminLoyaltyStatus(){
+    const cid = getValidAdminLoyaltyCid();
+    if(!cid){ adminLoyaltyStatusEl.textContent = ''; return; }
+    adminLoyaltyStatusEl.textContent = 'Checking…';
+    const stamps = await fetchLoyaltyStamps(cid);
+    renderAdminLoyaltyStatus(stamps);
+  }
+
+  adminLoyaltyCidInput.addEventListener('input', () => {
+    clearTimeout(adminLoyaltyDebounce);
+    adminLoyaltyDebounce = setTimeout(refreshAdminLoyaltyStatus, 500);
+  });
+
+  function getAdminLoyaltyAmount(){
+    const amount = Math.floor(Number(adminLoyaltyAmountInput.value));
+    return (Number.isFinite(amount) && amount > 0) ? amount : 1;
+  }
+
+  document.getElementById('adminAddStampsBtn').addEventListener('click', async () => {
+    const cid = getValidAdminLoyaltyCid();
+    if(!cid){
+      showAdminAlert('Enter a valid CID (1–8 digits) first.', 'Missing CID');
+      return;
+    }
+    const amount = getAdminLoyaltyAmount();
+    const current = await fetchLoyaltyStamps(cid);
+    if(current === null){ showAdminAlert('Could not reach the server. Try again.', 'Connection Issue'); return; }
+    const newStamps = current + amount;
+    const ok = await setLoyaltyStamps(cid, newStamps);
+    if(!ok){ showAdminAlert('Failed to save the change. Try again.', 'Save Failed'); return; }
+    renderAdminLoyaltyStatus(newStamps);
+    showAdminAlert(`Added ${amount} stamp${amount===1?'':'s'} for CID ${cid}. New total: ${newStamps}/10.`, 'Stamps Added');
+  });
+
+  document.getElementById('adminRemoveStampsBtn').addEventListener('click', async () => {
+    const cid = getValidAdminLoyaltyCid();
+    if(!cid){
+      showAdminAlert('Enter a valid CID (1–8 digits) first.', 'Missing CID');
+      return;
+    }
+    const amount = getAdminLoyaltyAmount();
+    const current = await fetchLoyaltyStamps(cid);
+    if(current === null){ showAdminAlert('Could not reach the server. Try again.', 'Connection Issue'); return; }
+    const newStamps = Math.max(0, current - amount);
+    const ok = await setLoyaltyStamps(cid, newStamps);
+    if(!ok){ showAdminAlert('Failed to save the change. Try again.', 'Save Failed'); return; }
+    renderAdminLoyaltyStatus(newStamps);
+    showAdminAlert(`Removed ${amount} stamp${amount===1?'':'s'} for CID ${cid}. New total: ${newStamps}/10.`, 'Stamps Removed');
+  });
+
+  // Which meals/bundles are allowed to be redeemed for a free-meal loyalty reward.
+  function renderLoyaltyEligibleBundles(){
+    const list = document.getElementById('loyaltyEligibleBundlesList');
+    const bundles = (MENU.bundles || []).filter(b => !isDeleted(b.id));
+
+    if(!bundles.length){
+      list.innerHTML = '<div class="empty">No meals/bundles yet.</div>';
+      return;
+    }
+
+    list.innerHTML = `<div class="pool-checkboxes">${bundles.map(raw => {
+      const item = effectiveItem(raw);
+      const checked = loyaltyEligibleBundleIds === null || loyaltyEligibleBundleIds.includes(raw.id);
+      return `
+        <label class="pool-checkbox">
+          <input type="checkbox" class="loyalty-eligible-checkbox" data-id="${raw.id}" ${checked ? 'checked' : ''}>
+          ${item.name}
+        </label>`;
+    }).join('')}</div>`;
+  }
+
+  document.getElementById('saveLoyaltyEligibleBundlesBtn').addEventListener('click', async () => {
+    const checkboxes = document.querySelectorAll('.loyalty-eligible-checkbox');
+    const newIds = [...checkboxes].filter(cb => cb.checked).map(cb => cb.dataset.id);
+    const previous = loyaltyEligibleBundleIds;
+    loyaltyEligibleBundleIds = newIds;
+
+    const ok = await syncStateToServer();
+    if(!ok){
+      loyaltyEligibleBundleIds = previous;
+      return; // syncStateToServer() already showed an error alert
+    }
+
+    // Re-fetch to confirm the server actually persisted this field — a write
+    // endpoint that doesn't know about a newer field can return success while
+    // silently dropping it, which looks identical to a successful save otherwise.
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_menu_state?id=eq.1&select=loyalty_eligible_bundles`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      const rows = res.ok ? await res.json() : [];
+      const saved = rows[0]?.loyalty_eligible_bundles;
+      const matches = Array.isArray(saved) && saved.length === newIds.length && newIds.every(id => saved.includes(id));
+      if(!matches){
+        showAdminAlert("This saved on the network side, but the server didn't actually store the meal list — the write function likely needs to be updated to accept this field. Ask Claude for the exact fix if you're not sure.", 'Not Actually Saved');
+        return;
+      }
+    }catch(err){
+      console.error('Could not verify loyalty_eligible_bundles was saved:', err);
+    }
+
+    showAdminAlert('Saved which meals are eligible for loyalty redemption.', 'Saved');
   });
 
   // ---------- Recipes ----------

@@ -37,6 +37,7 @@
     .card .btn{margin-top:auto}
     .price{color:var(--accent);font-weight:700}
     .muted{color:var(--muted);font-size:.9rem}
+    #loyaltyStatus:not(:empty){display:inline-block;margin-top:10px;font-size:.92rem;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow)}
     .qty{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:8px;margin-top:6px}
     .qty.static{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px}
     .qty.static button{width:auto;padding:4px 10px;font-size:12px}
@@ -105,7 +106,7 @@
         </div>
         <div>
           <h1>Burger Shot Order Calculator</h1>
-          <div class="muted">Pick combos & a la carte items, apply discounts, and get an exact total.</div>
+          <div class="muted">Pick combos &amp; a la carte items, apply discounts, and get an exact total.</div>
         </div>
       </div>
       <div class="toolrow">
@@ -180,14 +181,12 @@
       </aside>
 
       <aside class="panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 18px;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan);">
-          <h2 id="checkoutPanelTitle" style="margin:0;padding:0;border:none;color:#fff;">Checkout</h2>
-          <!-- Loyalty program hidden for now — design still being decided. Flip LOYALTY_ENABLED
-               to true in the script below and remove display:none here to bring it back. -->
-          <div style="display:none;align-items:center;gap:8px;">
-            <input type="text" id="loyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8" style="padding:7px 10px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.85rem;width:140px;">
-            <div id="loyaltyStatus" class="muted" style="font-size:.78rem;"></div>
+        <div style="padding:16px 18px;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan);">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <h2 id="checkoutPanelTitle" style="margin:0;padding:0;border:none;color:#fff;">Checkout</h2>
+            <input type="text" id="loyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8" style="padding:7px 10px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--ink);font-size:.85rem;width:140px;">
           </div>
+          <div id="loyaltyStatus" class="muted" style="color:#fde8ea;"></div>
         </div>
         <div class="content">
           <div id="checkout-regular">
@@ -210,6 +209,7 @@
               <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
               <div class="row" id="deliveryRow" style="display:none;"><span>Delivery Fee</span><strong id="deliveryFee">$0.00</strong></div>
               <div class="row"><span>Discount</span><strong id="discount">-$0.00</strong></div>
+              <div class="row" id="loyaltyRewardRow" style="display:none;"><span>🎉 Loyalty Reward</span><strong id="loyaltyRewardAmount">-$0.00</strong></div>
               <div class="row total"><span>Total</span><strong id="total">$0.00</strong></div>
             </div>
 
@@ -408,16 +408,16 @@
     </div>
   </dialog>
 
-  <dialog id="redeemLoyaltyModal">
+  <dialog id="redeemLoyaltyModal" style="width:min(480px,94vw);">
     <div class="modal-header">
-      <strong>🎉 Redeem Reward</strong>
+      <strong id="redeemLoyaltyTitle">No Eligible Meal in Cart</strong>
       <button class="btn" id="closeRedeemLoyaltyModal" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
-      <div id="redeemLoyaltyMessage">Redeem a free meal for this customer? This will use 5 of their stamps.</div>
-      <div class="toolrow" style="justify-content:flex-end;gap:10px;">
-        <button class="btn" id="cancelRedeemLoyaltyBtn">Cancel</button>
-        <button class="btn primary" id="confirmRedeemLoyaltyBtn">Redeem Reward</button>
+      <div id="redeemLoyaltyMessage">There's no eligible meal to redeem against right now. Add one of these instead:</div>
+      <div id="redeemEligibleMealList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="toolrow" style="justify-content:flex-end;">
+        <button class="btn" id="cancelRedeemLoyaltyBtn">Never Mind</button>
       </div>
     </div>
   </dialog>
@@ -436,6 +436,8 @@
     let customMenuItems = [];
     let menuOverrides = {};
     let deletedItemIds = [];
+    // null = no restriction set by the admin yet (every meal/bundle is eligible).
+    let loyaltyEligibleBundleIds = null;
 
     try{
       const res = await fetch(`${SUPABASE_URL}/rest/v1/burgershot_menu_state?id=eq.1&select=*`, {
@@ -468,6 +470,8 @@
           if(ing && ing.name) INGREDIENT_PRICES[ing.name] = Number(ing.price) || 0;
         });
       }
+      // Loyalty: which meals/bundles the admin has allowed to be redeemed for a free meal.
+      loyaltyEligibleBundleIds = Array.isArray(row.loyalty_eligible_bundles) ? row.loyalty_eligible_bundles : null;
     }catch(err){
       console.error('Failed to load shared menu state, falling back to defaults:', err);
       // Fall back to whatever menu-data.js ships with — the calculator still works,
@@ -555,7 +559,7 @@
 
     const state = {
       cart:[], discountPct:0, history:[], fulfillment:'pickup', deliveryZone:'city',
-      mode:'regular',
+      mode:'regular', pendingRedemptions:[],
       // Catering keeps its own separate cart/discount/fulfillment — entirely independent of the regular order above.
       cateringCart:[], cateringDiscountPct:0, cateringFulfillment:'pickup', cateringDeliveryZone:'city'
     };
@@ -568,6 +572,7 @@
         localStorage.setItem(STATE_KEY, JSON.stringify({
           cart: state.cart,
           discountPct: state.discountPct,
+          pendingRedemptions: state.pendingRedemptions,
           fulfillment: state.fulfillment,
           deliveryZone: state.deliveryZone,
           cateringCart: state.cateringCart,
@@ -588,6 +593,7 @@
         const saved = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
         if(Array.isArray(saved.cart)) state.cart = saved.cart;
         if(typeof saved.discountPct === 'number') state.discountPct = saved.discountPct;
+        if(Array.isArray(saved.pendingRedemptions)) state.pendingRedemptions = saved.pendingRedemptions;
         if(saved.fulfillment) state.fulfillment = saved.fulfillment;
         if(saved.deliveryZone) state.deliveryZone = saved.deliveryZone;
         if(Array.isArray(saved.cateringCart)) state.cateringCart = saved.cateringCart;
@@ -655,7 +661,9 @@
         employee: entry.employee || null,
         items: entry.items,
         total: entry.total,
-        discount: entry.discountPct
+        discount: entry.discountPct,
+        loyalty_reward: entry.loyaltyReward || 0,
+        loyalty_redemptions: entry.loyaltyRedemptions || []
       });
       if(error) console.warn('Supabase push failed', error);
     }
@@ -672,7 +680,9 @@
         employee: r.employee || null,
         items: (r.items || []).map(i=>({ ...i, unit:Number(i.unit)||0, qty:Number(i.qty)||0, lineTotal:Number(i.lineTotal)||0 })),
         total: Number(r.total)||0,
-        discountPct: Number(r.discount)||0
+        discountPct: Number(r.discount)||0,
+        loyaltyReward: Number(r.loyalty_reward)||0,
+        loyaltyRedemptions: Array.isArray(r.loyalty_redemptions) ? r.loyalty_redemptions.map(x=>({ cid:x.cid, mealPrice:Number(x.mealPrice)||0 })) : []
       }));
     }
 
@@ -1124,7 +1134,7 @@
     function buildRecipeGroupsHTML(filter='', idFilter=null){
       const q = filter.trim().toLowerCase();
       const groups = [
-        { title:'☕ Drinks', pool: MENU.classic },
+        { title:'🍔 A La Carte', pool: MENU.classic },
         { title:'🍦 Ice Cream', pool: MENU.iceCream },
         { title:'🎁 Extras', pool: MENU.extras },
       ];
@@ -1240,7 +1250,8 @@
       const subtotal = state.cart.reduce((s,l)=>s + l.unitPrice*l.qty, 0);
       const manual = +(discountableSubtotal(state.cart) * (state.discountPct/100)).toFixed(2);
       const deliveryFee = state.fulfillment==='delivery' ? (ZONE_FEES[state.deliveryZone]||0) : 0;
-      const total = subtotal + deliveryFee - manual;
+      const loyaltyReward = getLoyaltyRewardTotal();
+      const total = Math.max(0, subtotal + deliveryFee - manual - loyaltyReward);
 
       document.getElementById('subtotal').textContent = currency(subtotal);
       document.getElementById('discount').textContent = `-${currency(manual)}`;
@@ -1248,6 +1259,9 @@
       const row = document.getElementById('deliveryRow');
       if(deliveryFee>0){ row.style.display='flex'; document.getElementById('deliveryFee').textContent = currency(deliveryFee); }
       else { row.style.display='none'; document.getElementById('deliveryFee').textContent = currency(0); }
+      const rewardRow = document.getElementById('loyaltyRewardRow');
+      if(loyaltyReward>0){ rewardRow.style.display='flex'; document.getElementById('loyaltyRewardAmount').textContent = `-${currency(loyaltyReward)}`; }
+      else { rewardRow.style.display='none'; }
       persistState();
     }
 
@@ -1300,6 +1314,12 @@
     }
 
     function historyEntryHTML(h){
+      const redemptions = Array.isArray(h.loyaltyRedemptions) ? h.loyaltyRedemptions : [];
+      const redemptionHTML = redemptions.length
+        ? `<div class="small" style="color:var(--accent);font-weight:700;margin-top:4px;">
+             ${redemptions.map(r => `🎁 Reward redeemed (CID ${r.cid}): ${currency(r.mealPrice)} off`).join('<br>')}
+           </div>`
+        : '';
       return `
         <article class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
@@ -1307,6 +1327,7 @@
               <div><strong>${new Date(h.id).toLocaleString()}</strong></div>
               ${h.employee?`<div style="font-size:1.05rem;font-weight:700;color:var(--accent);margin:2px 0;">👤 ${h.employee}</div>`:''}
               <div class="small">${h.items.length} item(s) • Discount ${h.discountPct}%</div>
+              ${redemptionHTML}
             </div>
             <div><strong>${currency(h.total)}</strong></div>
           </div>
@@ -1405,7 +1426,7 @@
     // ---------- Regular combo wizard: fully driven by item.components ----------
     // Each component is either { type:'choice', label, category, qty, poolIds? } — customer picks `qty` items
     // from the given pool — or { type:'fixed', label, category, itemId, qty } — always included, no picker step.
-    function openComboWizard(item, qty){
+    function openComboWizard(item, qty, onDone){
       const usedTotal = (counts) => Object.values(counts).reduce((a,b)=>a+b,0);
       const orderQty = qty || 1;
       const components = Array.isArray(item.components) ? item.components : [];
@@ -1551,6 +1572,7 @@
 
           renderCart(); renderTotals(); renderIngredients(); renderItemTotals();
           comboModal.close();
+          if(typeof onDone === 'function') onDone();
           return;
         }
 
@@ -1571,6 +1593,7 @@
         });
 
         comboModal.close();
+        if(typeof onDone === 'function') onDone();
       };
 
       if(choiceSteps.length) renderChoiceGrid();
@@ -1829,7 +1852,7 @@
       wrap.innerHTML = entries.map(([n,c])=>`<div class="ing-list"><div>${n}</div><div><strong>x${c}</strong></div></div>`).join('');
     }
 
-    // ---------- Simple menu popups (A La Carte / Ice Cream / Extras) ----------
+    // ---------- Simple menu popups (Drinks / Ice Cream / Bakes & Treats) ----------
     document.getElementById('openDrinksBtn').addEventListener('click',()=>document.getElementById('drinksModal').showModal());
     document.getElementById('closeDrinks').addEventListener('click',()=>document.getElementById('drinksModal').close());
     document.getElementById('openIceCreamBtn').addEventListener('click',()=>document.getElementById('iceCreamModal').showModal());
@@ -1837,10 +1860,10 @@
     document.getElementById('openExtrasBtn').addEventListener('click',()=>document.getElementById('extrasModal').showModal());
     document.getElementById('closeExtras').addEventListener('click',()=>document.getElementById('extrasModal').close());
 
-    // ---------- Loyalty (CID stamp card: 1 stamp per qualifying order, 5 stamps = free meal) ----------
+    // ---------- Loyalty (CID stamp card: 1 stamp per qualifying order with a meal, 10 stamps = free meal) ----------
     // Hidden/disabled for now while the design is still being decided.
     // To bring it back: set this to true, and remove display:none from the loyalty row's HTML above.
-    const LOYALTY_ENABLED = false;
+    const LOYALTY_ENABLED = true;
     const loyaltyCidInput = document.getElementById('loyaltyCid');
     const loyaltyStatusEl = document.getElementById('loyaltyStatus');
     let loyaltyDebounce = null;
@@ -1896,22 +1919,32 @@
       return ok ? newStamps : null;
     }
 
+    function isRedemptionQueued(cid){
+      return state.pendingRedemptions.some(r => r.cid === cid);
+    }
+
     function renderLoyaltyStatusDisplay(stamps){
+      const cid = getValidLoyaltyCid();
+      if(cid && isRedemptionQueued(cid)){
+        loyaltyStatusEl.innerHTML = `🎁 <strong style="color:var(--accent);">Reward queued</strong> — applies at checkout`;
+        return;
+      }
       if(stamps === null){
         loyaltyStatusEl.textContent = 'Could not check loyalty status.';
         return;
       }
-      if(stamps >= 5){
-        loyaltyStatusEl.innerHTML = `🎉 <strong style="color:var(--accent);">Reward ready!</strong> (${stamps} stamps) <button id="redeemLoyaltyBtn" class="btn" style="padding:3px 10px;font-size:.75rem;margin-left:4px;">Redeem</button>`;
+      if(stamps >= 10){
+        loyaltyStatusEl.innerHTML = `🎉 <strong style="color:var(--accent);">Reward ready!</strong> (${stamps} stamps) <button id="redeemLoyaltyBtn" class="btn" style="padding:5px 14px;font-size:.88rem;margin-left:4px;">Redeem</button>`;
         document.getElementById('redeemLoyaltyBtn').addEventListener('click', openRedeemLoyaltyConfirm);
       }else{
-        loyaltyStatusEl.textContent = `⭐ ${stamps}/5 stamps`;
+        loyaltyStatusEl.textContent = `⭐ ${stamps}/10 stamps`;
       }
     }
 
     async function refreshLoyaltyStatus(){
       const cid = getValidLoyaltyCid();
       if(!cid){ loyaltyStatusEl.textContent = ''; return; }
+      if(isRedemptionQueued(cid)){ renderLoyaltyStatusDisplay(null); return; }
       loyaltyStatusEl.textContent = 'Checking…';
       const stamps = await fetchLoyaltyStamps(cid);
       renderLoyaltyStatusDisplay(stamps);
@@ -1922,27 +1955,133 @@
       loyaltyDebounce = setTimeout(refreshLoyaltyStatus, 500);
     });
 
+    function isLoyaltyEligible(l){
+      return loyaltyEligibleBundleIds === null || loyaltyEligibleBundleIds.includes(l.id);
+    }
+
+    // Every unit of every eligible meal currently in the cart is a "slot" that could
+    // be given away free. Recomputed live from the cart every time it's needed, so
+    // removing/swapping the meal a reward was going to apply to is always reflected —
+    // nothing is ever frozen at the moment of clicking Redeem.
+    function getEligibleMealSlots(){
+      const slots = [];
+      state.cart.forEach(l => {
+        if(l.type === 'bundle' && isLoyaltyEligible(l)){
+          for(let i=0;i<l.qty;i++) slots.push(l.unitPrice);
+        }
+      });
+      slots.sort((a,b)=>a-b);
+      return slots;
+    }
+
+    // Assigns each queued redemption the cheapest available slot, in the order they
+    // were queued. A redemption with no slot left for it (e.g. the meal it was going
+    // to apply to got removed) comes back with mealPrice 0 — it discounts nothing and
+    // won't cost the customer stamps at checkout.
+    function getLoyaltyRedemptionAssignments(){
+      const slots = getEligibleMealSlots();
+      return state.pendingRedemptions.map((r, i) => ({ cid: r.cid, mealPrice: i < slots.length ? slots[i] : 0 }));
+    }
+
+    function getLoyaltyRewardTotal(){
+      return +getLoyaltyRedemptionAssignments().reduce((s,r)=>s+r.mealPrice, 0).toFixed(2);
+    }
+
+    function eligibleBundleMenuItems(){
+      return (MENU.bundles || []).filter(b => loyaltyEligibleBundleIds === null || loyaltyEligibleBundleIds.includes(b.id));
+    }
+
+    function addBundleToCartById(id, onWizardDone){
+      const item = (MENU.bundles || []).find(b => b.id === id);
+      if(!item) return false;
+      const needsCombo = (Array.isArray(item.components) && item.components.length > 0) || item.id === 'cat-party-pack';
+      if(needsCombo){
+        openComboWizard(item, 1, onWizardDone);
+      }else{
+        addToCart({ id:item.id, name:item.name, unitPrice:item.price, qty:1, type:'bundle' });
+      }
+      return needsCombo;
+    }
+
+    // Actually queues the redemption (no confirmation step) and shows the one
+    // result popup. Caller must have already confirmed a free slot exists.
+    function performRedemption(cid){
+      if(isRedemptionQueued(cid)){
+        showAlert('A reward for this CID is already queued for this order.', 'Already Queued');
+        return;
+      }
+      const freeSlots = getEligibleMealSlots().length - state.pendingRedemptions.length;
+      if(freeSlots <= 0) return;
+
+      // Nothing is deducted from the server yet, and no price is frozen here either —
+      // the stamps are only spent (and the discount amount finalized) once checkout
+      // actually completes, so removing/swapping the meal always reflects correctly,
+      // and an abandoned/cleared order never costs a customer stamps.
+      state.pendingRedemptions.push({ cid });
+      renderTotals();
+      renderLoyaltyStatusDisplay(null);
+
+      const assignments = getLoyaltyRedemptionAssignments();
+      const mealPrice = assignments[assignments.length - 1].mealPrice;
+      showAlert(`Reward redeemed! ${currency(mealPrice)} has been taken off this order's total. 10 stamps will be used from this customer's balance once checkout is completed.`, 'Reward Redeemed');
+    }
+
+    // Only shown when there's no free eligible-meal slot yet — lets them add one,
+    // then immediately redeems against it in the same click (for simple meals).
+    function renderMealPickerContent(){
+      const msgEl = document.getElementById('redeemLoyaltyMessage');
+      const listEl = document.getElementById('redeemEligibleMealList');
+      const eligible = eligibleBundleMenuItems();
+
+      if(!eligible.length){
+        msgEl.textContent = 'No meals are currently marked as eligible for loyalty redemption — check Shop Settings in the admin panel.';
+        listEl.innerHTML = '';
+        return;
+      }
+
+      msgEl.textContent = "There's no eligible meal to redeem against right now. Add one of these instead:";
+      listEl.innerHTML = eligible.map(item => `
+        <button class="btn block add-eligible-meal-btn" data-id="${item.id}" style="justify-content:space-between;">
+          <span>${item.name}</span>
+          <span>${currency(item.price)}</span>
+        </button>
+      `).join('');
+      listEl.querySelectorAll('.add-eligible-meal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cid = pendingRedeemCid;
+          pendingRedeemCid = null;
+          document.getElementById('redeemLoyaltyModal').close();
+
+          // Already clicked Redeem once to get here — no need to make them click it
+          // again. Simple meals redeem immediately; wizard meals redeem the moment
+          // the wizard actually finishes adding the meal to the cart.
+          const usedWizard = addBundleToCartById(btn.dataset.id, () => {
+            if(cid) performRedemption(cid);
+          });
+          if(!usedWizard && cid){
+            performRedemption(cid);
+          }
+        });
+      });
+    }
+
     function openRedeemLoyaltyConfirm(){
       const cid = getValidLoyaltyCid();
       if(!cid) return;
+
+      const freeSlots = getEligibleMealSlots().length - state.pendingRedemptions.length;
+      if(freeSlots > 0){
+        performRedemption(cid);
+        return;
+      }
+
+      // No free eligible-meal slot — need the user to pick a meal to add first.
       pendingRedeemCid = cid;
+      renderMealPickerContent();
       document.getElementById('redeemLoyaltyModal').showModal();
     }
     document.getElementById('closeRedeemLoyaltyModal').addEventListener('click', () => document.getElementById('redeemLoyaltyModal').close());
     document.getElementById('cancelRedeemLoyaltyBtn').addEventListener('click', () => document.getElementById('redeemLoyaltyModal').close());
-    document.getElementById('confirmRedeemLoyaltyBtn').addEventListener('click', async () => {
-      const cid = pendingRedeemCid;
-      pendingRedeemCid = null;
-      document.getElementById('redeemLoyaltyModal').close();
-      if(!cid) return;
-      const current = await fetchLoyaltyStamps(cid);
-      if(current === null){ showAlert('Could not reach the server to redeem this reward. Try again.'); return; }
-      const remaining = Math.max(0, current - 5);
-      await setLoyaltyStamps(cid, remaining);
-      renderLoyaltyStatusDisplay(remaining);
-      showAlert(`Reward redeemed! Don't forget to comp a free meal for this order. Remaining stamps: ${remaining}/5.`, 'Reward Redeemed');
-    });
-
 
     function renderAll(){ renderCards(); renderCart(); renderFulfillment(); renderTotals(); renderDiscount(); renderHistory(); renderIngredients(); renderItemTotals(); }
 
@@ -1957,29 +2096,53 @@
       const subtotal=state.cart.reduce((s,l)=>s+l.unitPrice*l.qty,0);
       const manual=+(discountableSubtotal(state.cart)*(state.discountPct/100)).toFixed(2);
       const fee=state.fulfillment==='delivery'?(ZONE_FEES[state.deliveryZone]||0):0;
-      const total=+(subtotal+fee-manual).toFixed(2);
+      // Final assignment happens right now, live off the actual cart — if a meal a
+      // reward was going to apply to got removed/swapped since it was queued, this
+      // reflects that correctly instead of using a price frozen at redeem time.
+      const loyaltyAssignments = getLoyaltyRedemptionAssignments();
+      const loyaltyReward = getLoyaltyRewardTotal();
+      const total=Math.max(0, +(subtotal+fee-manual-loyaltyReward).toFixed(2));
+      const loyaltyRedemptions = loyaltyAssignments.filter(r => r.mealPrice > 0);
       const entry={
         id:Date.now(),
         employee: employeeName,
         items:state.cart.map(l=>({ id:l.id||null,name:l.name,qty:l.qty,unit:l.unitPrice,meta:l.meta||null,drinks:l.drinks||null,cakes:l.cakes||null,type:l.type||'extra',groupId:l.groupId||null,lineTotal:+(l.unitPrice*l.qty).toFixed(2) })),
-        discountPct:state.discountPct, subtotal:+subtotal.toFixed(2), deliveryFee:fee, manualDiscount:manual, total
+        discountPct:state.discountPct, subtotal:+subtotal.toFixed(2), deliveryFee:fee, manualDiscount:manual, loyaltyReward, loyaltyRedemptions, total
       };
 
       const cid = getValidLoyaltyCid();
       const hasMeal = entry.items.some(i => i.type === 'bundle');
+      // Only redemptions that actually landed on a real meal spend stamps — one that
+      // lost its assigned meal before checkout is dropped for free, no stamps spent.
+      const redemptionsToApply = loyaltyRedemptions.slice();
 
       state.history.unshift(entry);
       pushHistoryToStorage(entry);
-      state.cart=[]; state.discountPct=0; renderAll();
+      state.cart=[]; state.discountPct=0; state.pendingRedemptions=[]; renderAll();
 
       let loyaltyMsg = '';
+
+      // Only now — after the order has actually gone through — do redeemed rewards
+      // actually spend the customer's stamps on the server.
+      for(const redemption of redemptionsToApply){
+        const current = await fetchLoyaltyStamps(redemption.cid);
+        if(current === null){
+          loyaltyMsg += ` ⚠ Couldn't reach the server to deduct stamps for CID ${redemption.cid} — please adjust their card manually.`;
+          continue;
+        }
+        const remaining = Math.max(0, current - 10);
+        await setLoyaltyStamps(redemption.cid, remaining);
+        if(redemption.cid === cid) renderLoyaltyStatusDisplay(remaining);
+        loyaltyMsg += ` 🎁 Reward redeemed for CID ${redemption.cid}: ${currency(redemption.mealPrice)} off, 10 stamps used (${remaining}/10 left).`;
+      }
+
       if(cid && hasMeal){
         const newStamps = await addLoyaltyStamp(cid);
         if(newStamps !== null){
           renderLoyaltyStatusDisplay(newStamps);
-          loyaltyMsg = newStamps >= 5
+          loyaltyMsg += newStamps >= 10
             ? ` 🎉 Loyalty reward unlocked (${newStamps} stamps) — click Redeem next to their CID to use it!`
-            : ` Loyalty stamp added (${newStamps}/5).`;
+            : ` Loyalty stamp added (${newStamps}/10).`;
         }
       }
 
@@ -1999,7 +2162,9 @@
       if(pendingClearTarget==='catering'){
         state.cateringCart=[]; state.cateringDiscountPct=0; renderCateringAll();
       } else {
-        state.cart=[]; state.discountPct=0; renderAll(); renderIngredients();
+        state.cart=[]; state.discountPct=0; state.pendingRedemptions=[]; renderAll(); renderIngredients();
+        loyaltyCidInput.value = '';
+        loyaltyStatusEl.textContent = '';
       }
       document.getElementById('confirmClearModal').close();
     });
