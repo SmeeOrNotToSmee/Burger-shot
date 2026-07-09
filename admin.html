@@ -650,7 +650,7 @@
         })
       });
       if(!res.ok){
-        showAdminAlert('Failed to save your change to the server. Make sure SUPABASE_URL/SUPABASE_ANON_KEY are filled in above and the burgershot_menu_state table exists with the right columns (including loyalty_eligible_bundles).', 'Save Failed');
+        showAdminAlert('Failed to save your change to the server. Make sure SUPABASE_URL/SUPABASE_ANON_KEY are filled in above and the burgershot_menu_state table exists with the right columns (including loyalty_eligible_bundles and deleted_ingredient_names).', 'Save Failed');
         return false;
       }
       return true;
@@ -1341,14 +1341,38 @@
 
     list.querySelectorAll('[data-remove-ingredient]').forEach(btn => {
       btn.addEventListener('click', () => {
-        showAdminConfirm(`Remove "${btn.dataset.removeIngredient}" from the ingredients list? Any recipes using it will keep the name, just without a set price.`, () => {
-          const name = btn.dataset.removeIngredient;
+        const name = btn.dataset.removeIngredient;
+
+        const affectedIds = Object.keys(RECIPE_MAP).filter(id => Object.prototype.hasOwnProperty.call(RECIPE_MAP[id], name));
+        const affectedNames = affectedIds.map(id => {
+          const item = findAnyMenuItemById(id);
+          return item ? item.name : id;
+        });
+
+        const message = affectedNames.length
+          ? `"${name}" is used in ${affectedNames.length} recipe(s): ${affectedNames.join(', ')}. Removing it will delete it from those recipes too — you'll want to add a replacement ingredient to them afterward. Continue?`
+          : `Remove "${name}" from the ingredients list? This can't be undone.`;
+
+        showAdminConfirm(message, () => {
           customIngredients = customIngredients.filter(i => i.name !== name);
           delete INGREDIENT_PRICES[name];
+
+          affectedIds.forEach(id => {
+            delete RECIPE_MAP[id][name];
+
+            if(Object.keys(RECIPE_MAP[id]).length === 0){
+              delete RECIPE_MAP[id];
+              delete recipeOverrides[id];
+            }else{
+              recipeOverrides[id] = RECIPE_MAP[id];
+            }
+          });
+
           if(editingIngredientName === name) editingIngredientName = null;
           syncStateToServer();
           renderIngredientsList();
-        }, 'Remove Ingredient?');
+          renderRecipeItemsList();
+        }, affectedNames.length ? 'Remove Ingredient From Recipes?' : 'Remove Ingredient?');
       });
     });
 
