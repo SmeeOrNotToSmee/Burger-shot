@@ -1334,7 +1334,7 @@
           <div class="meta">${price ? currency(price) : 'No price set'}</div>
           <div class="actions">
             <button class="btn edit-ingredient" data-name="${safeName}">Edit</button>
-            ${isCustom ? `<button class="btn danger" data-remove-ingredient="${safeName}">Remove</button>` : ''}
+            <button class="btn danger" data-remove-ingredient="${safeName}">Remove</button>
           </div>
         </div>`;
     }).join('');
