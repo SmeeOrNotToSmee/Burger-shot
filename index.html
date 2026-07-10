@@ -38,8 +38,8 @@
     .price{color:var(--accent);font-weight:700}
     .muted{color:var(--muted);font-size:.9rem}
     .loyalty-lookup{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
-    .loyalty-lookup label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px;}
-    .loyalty-lookup input{padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.9rem;width:100%;max-width:220px;}
+    .loyalty-lookup .mini-heading{margin:0 0 10px;padding:8px 12px;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--brown);color:#fff;border-bottom:2px solid var(--tan);border-radius:8px;}
+    .loyalty-lookup input{padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.9rem;width:80px;text-align:center;letter-spacing:1px;}
     #loyaltyStatus:not(:empty){display:inline-block;margin-top:10px;font-size:.92rem;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow)}
     .qty{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:8px;margin-top:6px}
     .qty.static{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px}
@@ -187,8 +187,8 @@
         <h2 id="checkoutPanelTitle">Checkout</h2>
         <div class="content">
           <div class="loyalty-lookup">
-            <label for="loyaltyCid">Loyalty Num: CID</label>
-            <input type="text" id="loyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8">
+            <div class="mini-heading">Loyalty</div>
+            <input type="text" id="loyaltyCid" placeholder="CID" inputmode="numeric" maxlength="6">
             <div id="loyaltyStatus" class="muted"></div>
           </div>
           <div id="checkout-regular">
@@ -1949,6 +1949,8 @@
     }
 
     loyaltyCidInput.addEventListener('input', () => {
+      const cid = getValidLoyaltyCid();
+      loyaltyStatusEl.textContent = cid ? `CID entered: ${cid}` : '';
       clearTimeout(loyaltyDebounce);
       loyaltyDebounce = setTimeout(refreshLoyaltyStatus, 500);
     });
