@@ -27,7 +27,8 @@
     .panel[hidden]{display:none}
     @media (max-width:760px){.grid{grid-template-columns:1fr}}
     .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
-    .panel h2{margin:0;padding:16px 18px;font-size:1rem;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan)}
+    .panel h2{margin:0;padding:16px 18px;font-size:1rem;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan);position:relative}
+    .panel h2::after{content:'';position:absolute;top:100%;left:0;right:0;height:8px;background-color:#fff;background-image:linear-gradient(45deg,#000 25%,transparent 25%,transparent 75%,#000 75%,#000),linear-gradient(45deg,#000 25%,transparent 25%,transparent 75%,#000 75%,#000);background-size:8px 8px;background-position:0 0,4px 4px;pointer-events:none}
     .panel .content{padding:16px;display:flex;flex-direction:column;flex:1}
     .section{margin-bottom:16px}
     .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;align-items:stretch}
@@ -109,7 +110,7 @@
         </div>
         <div>
           <h1>Burger Shot Order Calculator</h1>
-          <div class="muted">Pick combos &amp; a la carte items, apply discounts, and get an exact total.</div>
+          <div class="muted">Shots fired... at your appetite.</div>
         </div>
       </div>
       <div class="toolrow">
