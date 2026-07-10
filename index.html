@@ -26,7 +26,7 @@
     .grid[hidden]{display:none}
     .panel[hidden]{display:none}
     @media (max-width:760px){.grid{grid-template-columns:1fr}}
-    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
     .panel h2{margin:0;padding:16px 18px;font-size:1rem;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan)}
     .panel .content{padding:16px;display:flex;flex-direction:column;flex:1}
     .section{margin-bottom:16px}
@@ -37,7 +37,10 @@
     .card .btn{margin-top:auto}
     .price{color:var(--accent);font-weight:700}
     .muted{color:var(--muted);font-size:.9rem}
-    #loyaltyStatus:not(:empty){display:inline-block;margin-top:10px;font-size:.92rem;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow)}
+    .loyalty-lookup{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+    .loyalty-lookup label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px;}
+    .loyalty-lookup input{padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:.9rem;width:100%;max-width:220px;}
+    #loyaltyStatus:not(:empty){display:inline-block;margin-top:10px;font-size:.92rem;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow)}
     .qty{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:8px;margin-top:6px}
     .qty.static{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px}
     .qty.static button{width:auto;padding:4px 10px;font-size:12px}
@@ -181,14 +184,13 @@
       </aside>
 
       <aside class="panel">
-        <div style="padding:16px 18px;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan);">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-            <h2 id="checkoutPanelTitle" style="margin:0;padding:0;border:none;color:#fff;">Checkout</h2>
-            <input type="text" id="loyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8" style="padding:7px 10px;border-radius:12px;border:1px solid var(--border);background:var(--chip);color:var(--ink);font-size:.85rem;width:140px;">
-          </div>
-          <div id="loyaltyStatus" class="muted" style="color:#fde8ea;"></div>
-        </div>
+        <h2 id="checkoutPanelTitle">Checkout</h2>
         <div class="content">
+          <div class="loyalty-lookup">
+            <label for="loyaltyCid">Loyalty Num: CID</label>
+            <input type="text" id="loyaltyCid" placeholder="Loyalty Num: CID" inputmode="numeric" maxlength="8">
+            <div id="loyaltyStatus" class="muted"></div>
+          </div>
           <div id="checkout-regular">
             <div class="option" style="margin-bottom:10px;">
               <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
@@ -698,10 +700,6 @@
       return null;
     }
 
-    function getMealDrinkPool(){
-      return MENU.classic.filter(x=>['bev-bean','bev-capp','bev-esp','bev-iced','bev-choc','bev-matcha','ex-lemon'].includes(x.id));
-    }
-
     function getCakePool(){ return MENU.extras.filter(x=>x.id.startsWith('ex-cake-')); }
 
     // ---------- Menu card rendering ----------
@@ -893,7 +891,7 @@
     function renderCateringCards(){
       const wrap = document.getElementById('cateringPackages');
       if(!MENU.cateringPackages.length){
-        wrap.innerHTML = `<div class="muted">No catering packages yet. Tell Claude what packages, bundle pricing, or bulk deals to add and they'll show up here as cards — completely separate from the regular menu above.</div>`;
+        wrap.innerHTML = `<div class="muted">No catering packages yet — add some to menu-data.js and they'll show up here as cards, completely separate from the regular menu above.</div>`;
         return;
       }
       wrap.innerHTML = MENU.cateringPackages.map(i=>cardHTML(i)).join('');

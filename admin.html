@@ -22,7 +22,7 @@
     .brand{display:flex;align-items:center;gap:12px}
     .brand .logo{width:48px;height:48px;border-radius:12px;box-shadow:var(--shadow);background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
     .brand h1{margin:0;font-size:1.3rem;letter-spacing:.3px}
-    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
     .panel h2{margin:0;padding:16px 18px;font-size:1rem;background:var(--brown);color:#fff;border-bottom:3px solid var(--tan)}
     .panel .content{padding:18px;display:flex;flex-direction:column;gap:14px}
     .muted{color:var(--muted);font-size:.9rem}
@@ -166,7 +166,7 @@
     <div class="panel">
       <h2>🍔 Combos &amp; Bundles</h2>
       <div class="content">
-        <div class="small">Click a bundle to open its editor — change the price, name, description, or exactly what's included.</div>
+        <div class="small">Click a bundle to open its editor — change the price, name, description, or exactly what's included. Includes both regular combos and catering bundles.</div>
         <button class="btn" data-open-target="bundlesPanel" style="align-self:flex-start;">🍔 Open Combos &amp; Bundles</button>
       </div>
     </div>
@@ -236,6 +236,7 @@
               <option value="iceCream">🍦 Ice Cream</option>
               <option value="extras">🎁 Extras</option>
               <option value="bundles">🍔 Combos &amp; Bundles</option>
+              <option value="cateringPackages">🎉 Catering Bundles</option>
             </select>
           </div>
 
@@ -288,6 +289,14 @@
         <div class="content">
           <div class="small">Click a bundle to open its editor — change the price, name, description, or exactly what's included.</div>
           <div id="editBundlesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🎉 Catering Bundles</h2>
+        <div class="content">
+          <div class="small">Click a catering bundle to open its editor — change the price, name, description, or exactly what's included.</div>
+          <div id="editCateringBundlesList" style="display:flex;flex-direction:column;gap:8px;"></div>
         </div>
       </div>
     </div>
@@ -692,15 +701,6 @@
     renderBundlesList();
   }
 
-  function findAnyMenuItem(id){
-    for(const arr of Object.values(MENU)){
-      if(!Array.isArray(arr)) continue;
-      const found = arr.find(i => i.id === id);
-      if(found) return found;
-    }
-    return null;
-  }
-
   function renderDeletedList(){
     const list = document.getElementById('deletedList');
     if(!list) return;
@@ -711,7 +711,7 @@
     }
 
     list.innerHTML = deletedItemIds.map(id => {
-      const raw = findAnyMenuItem(id);
+      const raw = findAnyMenuItemById(id);
       const name = raw ? effectiveItem(raw).name : id;
       const isCustom = id.startsWith('custom-');
       return `
@@ -758,7 +758,8 @@
     classic:'🍔 A La Carte',
     iceCream:'🍦 Ice Cream',
     extras:'🎁 Extras',
-    bundles:'🍔 Combos & Bundles'
+    bundles:'🍔 Combos & Bundles',
+    cateringPackages:'🎉 Catering Bundles'
   };
 
   const categorySelect = document.getElementById('category');
@@ -772,11 +773,14 @@
     classic:'🍔',
     iceCream:'🍦',
     extras:'🎁',
-    bundles:'🍔'
+    bundles:'🍔',
+    cateringPackages:'🎉'
   };
 
+  const BUNDLE_LIKE_CATEGORIES = ['bundles', 'cateringPackages'];
+
   function syncFormToCategory(){
-    bundleFields.style.display = categorySelect.value === 'bundles' ? 'flex' : 'none';
+    bundleFields.style.display = BUNDLE_LIKE_CATEGORIES.includes(categorySelect.value) ? 'flex' : 'none';
   }
   categorySelect.addEventListener('change', syncFormToCategory);
   syncFormToCategory();
@@ -837,9 +841,10 @@
 
     const id = `custom-${category}-${Date.now()}`;
     const icon = DEFAULT_ICONS[category] || '⭐';
-    const item = { id, name, icon, price, type: category === 'bundles' ? 'bundle' : (category === 'classic' ? 'drink' : 'extra') };
+    const isBundleLike = BUNDLE_LIKE_CATEGORIES.includes(category);
+    const item = { id, name, icon, price, type: isBundleLike ? 'bundle' : (category === 'classic' ? 'drink' : 'extra') };
 
-    if(category === 'bundles'){
+    if(isBundleLike){
       const description = itemDescription.value.trim();
       if(description) item.description = description;
       item.components = [];
@@ -853,7 +858,7 @@
     renderCustomList();
     renderBundlesList();
 
-    if(category === 'bundles'){
+    if(isBundleLike){
       openBundleEditModal(id);
     }
   });
@@ -996,15 +1001,17 @@
   const bundleEditModalBody = document.getElementById('bundleEditModalBody');
   document.getElementById('closeBundleEditModal').addEventListener('click', () => bundleEditModal.close());
 
-  function renderBundlesList(){
-    const bundles = (MENU.bundles || []).filter(b => !isDeleted(b.id));
+  const editCateringBundlesList = document.getElementById('editCateringBundlesList');
+
+  function renderBundleCategoryList(category, containerEl){
+    const bundles = (MENU[category] || []).filter(b => !isDeleted(b.id));
 
     if(!bundles.length){
-      editBundlesList.innerHTML = '<div class="empty">No bundles yet.</div>';
+      containerEl.innerHTML = '<div class="empty">No bundles yet.</div>';
       return;
     }
 
-    editBundlesList.innerHTML = bundles.map(raw => {
+    containerEl.innerHTML = bundles.map(raw => {
       const item = effectiveItem(raw);
       const hasOverride = !!menuOverrides[raw.id];
       return `
@@ -1014,13 +1021,24 @@
         </button>`;
     }).join('');
 
-    editBundlesList.querySelectorAll('.bundle-button').forEach(btn => {
+    containerEl.querySelectorAll('.bundle-button').forEach(btn => {
       btn.addEventListener('click', () => openBundleEditModal(btn.dataset.id));
     });
   }
 
+  function renderBundlesList(){
+    renderBundleCategoryList('bundles', editBundlesList);
+    renderBundleCategoryList('cateringPackages', editCateringBundlesList);
+  }
+
+  function findBundleCategoryForId(id){
+    return BUNDLE_LIKE_CATEGORIES.find(cat => (MENU[cat] || []).some(b => b.id === id));
+  }
+
   function openBundleEditModal(id){
-    const raw = MENU.bundles.find(b => b.id === id);
+    const category = findBundleCategoryForId(id);
+    if(!category) return;
+    const raw = MENU[category].find(b => b.id === id);
     if(!raw) return;
 
     const item = effectiveItem(raw);
@@ -1585,7 +1603,7 @@
       const saved = rows[0]?.loyalty_eligible_bundles;
       const matches = Array.isArray(saved) && saved.length === newIds.length && newIds.every(id => saved.includes(id));
       if(!matches){
-        showAdminAlert("This saved on the network side, but the server didn't actually store the meal list — the write function likely needs to be updated to accept this field. Ask Claude for the exact fix if you're not sure.", 'Not Actually Saved');
+        showAdminAlert("This saved on the network side, but the server didn't actually store the meal list — the write function likely needs to be updated to accept this field.", 'Not Actually Saved');
         return;
       }
     }catch(err){
